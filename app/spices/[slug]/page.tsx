@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getProductImageUrl } from "@/lib/products/image-url";
 import { createClient } from "@/lib/supabase/server";
 
 type Props = {
@@ -11,17 +12,64 @@ export default async function SpicePage({ params }: Props) {
 
   const { data: product } = await supabase
     .from("products")
-    .select("id,name,slug,description,short_description,heat_level,country_of_origin,product_variants(id,sku,weight_value,weight_unit,retail_price_cents,stock_quantity)")
+    .select(`
+      id,name,slug,description,short_description,heat_level,country_of_origin,
+      product_variants(id,sku,weight_value,weight_unit,retail_price_cents,stock_quantity),
+      product_images(id,storage_path,alt_text,is_primary,sort_order),
+      product_cuisines(cuisines(name)),
+      product_food_types(food_types(name)),
+      product_flavours(flavours(name)),
+      product_cooking_methods(cooking_methods(name))
+    `)
     .eq("slug", slug)
     .eq("is_active", true)
     .maybeSingle();
 
   if (!product) notFound();
 
+  const images = [...(product.product_images ?? [])].sort(
+    (a, b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order,
+  );
+  const primaryImage = images[0];
+  const primaryImageUrl = getProductImageUrl(primaryImage?.storage_path);
+
+  const tags = [
+    ...(product.product_cuisines ?? []).map((item) => item.cuisines?.name).filter(Boolean),
+    ...(product.product_food_types ?? []).map((item) => item.food_types?.name).filter(Boolean),
+    ...(product.product_flavours ?? []).map((item) => item.flavours?.name).filter(Boolean),
+    ...(product.product_cooking_methods ?? []).map((item) => item.cooking_methods?.name).filter(Boolean),
+  ];
+
   return (
     <main className="pt-32">
       <section className="section-wrap grid gap-10 py-20 lg:grid-cols-2">
-        <div className="glass-soft aspect-square rounded-[2.5rem] bg-[radial-gradient(circle_at_50%_35%,rgba(255,186,73,.14),transparent_42%),rgba(0,0,0,.2)]" />
+        <div>
+          <div className="glass-soft aspect-square overflow-hidden rounded-[2.5rem] bg-[radial-gradient(circle_at_50%_35%,rgba(255,186,73,.14),transparent_42%),rgba(0,0,0,.2)]">
+            {primaryImageUrl ? (
+              <img
+                src={primaryImageUrl}
+                alt={primaryImage?.alt_text || product.name}
+                className="h-full w-full object-cover"
+              />
+            ) : null}
+          </div>
+
+          {images.length > 1 ? (
+            <div className="mt-3 grid grid-cols-4 gap-3">
+              {images.slice(1, 5).map((image) => {
+                const url = getProductImageUrl(image.storage_path);
+                return url ? (
+                  <img
+                    key={image.id}
+                    src={url}
+                    alt={image.alt_text || product.name}
+                    className="aspect-square rounded-2xl border border-white/10 object-cover"
+                  />
+                ) : null;
+              })}
+            </div>
+          ) : null}
+        </div>
 
         <div className="lg:py-8">
           <span className="eyebrow">Spice catalogue</span>
@@ -30,6 +78,16 @@ export default async function SpicePage({ params }: Props) {
           <p className="mt-5 text-sm text-stone-500">
             Heat level {product.heat_level}/5{product.country_of_origin ? ` · Origin: ${product.country_of_origin}` : ""}
           </p>
+
+          {tags.length ? (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <span key={tag} className="rounded-full border border-white/10 bg-white/[.03] px-3 py-1.5 text-xs text-stone-400">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
 
           <div className="mt-8 grid gap-3">
             {product.product_variants?.map((variant) => (
