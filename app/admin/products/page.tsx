@@ -24,15 +24,24 @@ export default async function AdminProductsPage() {
 
       <div className="mt-8 grid gap-3">
         {products?.length ? products.map((product) => (
-          <article key={product.id} className="glass-soft rounded-2xl p-5">
+          <Link
+            key={product.id}
+            href={`/admin/products/${product.id}`}
+            className="glass-soft rounded-2xl p-5 transition hover:-translate-y-0.5 hover:border-orange-200/20"
+          >
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="display-font text-xl font-semibold">{product.name}</p>
-                <p className="mt-1 text-xs text-stone-500">/{product.slug} · heat {product.heat_level}/5 · {product.is_active ? "active" : "draft"}</p>
+                <p className="mt-1 text-xs text-stone-500">
+                  /{product.slug} · heat {product.heat_level}/5 · {product.is_active ? "active" : "draft"}
+                </p>
               </div>
-              <p className="text-sm text-stone-400">{product.product_variants?.length ?? 0} variant(s)</p>
+              <div className="text-right">
+                <p className="text-sm text-stone-400">{product.product_variants?.length ?? 0} variant(s)</p>
+                <p className="mt-1 text-xs text-orange-200/70">Edit →</p>
+              </div>
             </div>
-          </article>
+          </Link>
         )) : <div className="glass-soft rounded-2xl p-8 text-stone-400">No products yet.</div>}
       </div>
     </section>
