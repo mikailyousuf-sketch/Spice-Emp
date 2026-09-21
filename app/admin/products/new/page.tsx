@@ -54,6 +54,7 @@ export default async function NewProductPage({ searchParams }: Props) {
           </Field>
           <Field label="Retail price (R)"><input name="retailPriceRand" type="number" min="0" step="0.01" required className="field" /></Field>
           <Field label="Stock quantity"><input name="stockQuantity" type="number" min="0" step="0.001" defaultValue="0" required className="field" /></Field>
+          <Field label="Low stock threshold"><input name="lowStockThreshold" type="number" min="0" step="0.001" defaultValue="0" required className="field" /></Field>
         </div>
 
         <button className="btn-primary mt-2 w-fit" type="submit">Create product</button>
