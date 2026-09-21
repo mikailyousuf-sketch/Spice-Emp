@@ -13,7 +13,11 @@ export default async function ShopPage({ searchParams }: Props) {
 
   let query = supabase
     .from("products")
-    .select("id,name,slug,short_description,heat_level,product_type_id,product_variants(id,weight_value,weight_unit,retail_price_cents,stock_quantity)")
+    .select(`
+      id,name,slug,short_description,heat_level,product_type_id,
+      product_variants(id,weight_value,weight_unit,retail_price_cents,stock_quantity),
+      product_images(id,storage_path,alt_text,is_primary,sort_order)
+    `)
     .eq("is_active", true)
     .order("name");
 
