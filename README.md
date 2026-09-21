@@ -75,12 +75,25 @@ Run the SQL files in order using the Supabase SQL editor, or link the Supabase C
 8. `supabase/migrations/0008_atomic_stock.sql`
 9. `supabase/migrations/0009_payments.sql`
 10. `supabase/migrations/0010_shipping.sql`
+11. `supabase/migrations/0011_shipping_providers.sql`
 
 Do not skip migration 0002. It creates profile/user-role automation and the admin write policies.
 Migration 0004 creates the public product-image Storage bucket and admin-only write policies.
 Migration 0005 adds search/filter indexes for names, aliases and discovery relationships.
 Migration 0009 adds payment-attempt tracking for Yoco and Paystack.
 Migration 0010 adds configurable shipping methods and order shipping snapshots.
+Migration 0011 adds Courier Guy/PUDO shipping-provider support, shipment records and parcel dimensions on variants.
+
+## Courier Guy / PUDO
+
+The shipping layer supports Courier Guy door delivery and PUDO locker delivery through provider adapters. Configure the provider API keys and the Spice Emp collection/origin address in `.env.local`.
+
+Product variants require shipping weight, length, width and height before live courier rates can be requested.
+
+The server endpoints are:
+
+- `GET /api/shipping/lockers` for PUDO locker data
+- `POST /api/shipping/quotes` for live courier quotes based on the active cart
 
 ## Payment testing
 
