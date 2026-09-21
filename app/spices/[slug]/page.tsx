@@ -33,11 +33,14 @@ export default async function SpicePage({ params }: Props) {
   const primaryImage = images[0];
   const primaryImageUrl = getProductImageUrl(primaryImage?.storage_path);
 
+  const relationNames = (value: Array<{ name: string }> | null | undefined) =>
+    (value ?? []).map((item) => item.name);
+
   const tags = [
-    ...(product.product_cuisines ?? []).map((item) => item.cuisines?.name).filter(Boolean),
-    ...(product.product_food_types ?? []).map((item) => item.food_types?.name).filter(Boolean),
-    ...(product.product_flavours ?? []).map((item) => item.flavours?.name).filter(Boolean),
-    ...(product.product_cooking_methods ?? []).map((item) => item.cooking_methods?.name).filter(Boolean),
+    ...(product.product_cuisines ?? []).flatMap((item) => relationNames(item.cuisines)),
+    ...(product.product_food_types ?? []).flatMap((item) => relationNames(item.food_types)),
+    ...(product.product_flavours ?? []).flatMap((item) => relationNames(item.flavours)),
+    ...(product.product_cooking_methods ?? []).flatMap((item) => relationNames(item.cooking_methods)),
   ];
 
   return (
