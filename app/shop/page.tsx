@@ -101,7 +101,7 @@ export default async function ShopPage({ searchParams }: Props) {
     return query;
   };
 
-  let products: Awaited<ReturnType<ReturnType<typeof makeQuery>["then"]>> extends never ? never : any[] = [];
+  let products: any[] = [];
   let errorMessage: string | null = null;
 
   if (searchTerm) {
