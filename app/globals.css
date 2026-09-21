@@ -14,15 +14,8 @@
   --lime: #c9e265;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html {
-  background: var(--background);
-  scroll-behavior: smooth;
-}
-
+* { box-sizing: border-box; }
+html { background: var(--background); scroll-behavior: smooth; }
 body {
   margin: 0;
   background:
@@ -33,7 +26,6 @@ body {
   font-family: var(--font-inter), sans-serif;
   min-height: 100vh;
 }
-
 body::before {
   content: "";
   position: fixed;
@@ -47,68 +39,33 @@ body::before {
   mask-image: linear-gradient(to bottom, black, transparent 78%);
   z-index: -1;
 }
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
-::selection {
-  background: rgba(255, 186, 73, 0.28);
-}
-
-.site-shell {
-  min-height: 100vh;
-  overflow: hidden;
-}
-
-.display-font {
-  font-family: var(--font-space), sans-serif;
-}
-
-.text-balance {
-  text-wrap: balance;
-}
-
+a { color: inherit; text-decoration: none; }
+button, input, textarea, select { font: inherit; }
+::selection { background: rgba(255, 186, 73, 0.28); }
+.site-shell { min-height: 100vh; overflow: hidden; }
+.display-font { font-family: var(--font-space), sans-serif; }
+.text-balance { text-wrap: balance; }
 .glass {
   background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.035));
   border: 1px solid var(--line);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.08),
-    0 30px 80px rgba(0,0,0,.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 30px 80px rgba(0,0,0,.28);
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
 }
-
 .glass-soft {
   background: rgba(255,255,255,.035);
   border: 1px solid rgba(255,255,255,.075);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
-
 .glow-ring {
   position: absolute;
   border-radius: 999px;
   filter: blur(1px);
   border: 1px solid rgba(255, 186, 73, 0.25);
-  box-shadow:
-    0 0 90px rgba(228, 91, 50, 0.20),
-    inset 0 0 60px rgba(255, 186, 73, 0.07);
+  box-shadow: 0 0 90px rgba(228, 91, 50, 0.20), inset 0 0 60px rgba(255, 186, 73, 0.07);
 }
-
-.section-wrap {
-  width: min(1180px, calc(100% - 40px));
-  margin-inline: auto;
-}
-
+.section-wrap { width: min(1180px, calc(100% - 40px)); margin-inline: auto; }
 .eyebrow {
   display: inline-flex;
   align-items: center;
@@ -119,16 +76,13 @@ select {
   letter-spacing: .2em;
   color: #e8c79b;
 }
-
 .eyebrow::before {
   content: "";
   width: 1.8rem;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--saffron));
 }
-
-.btn-primary,
-.btn-secondary {
+.btn-primary, .btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -139,33 +93,31 @@ select {
   font-weight: 700;
   transition: transform .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
 }
-
 .btn-primary {
   color: #140d07;
   background: linear-gradient(135deg, #ffd27d, #f28a3a);
   box-shadow: 0 12px 45px rgba(242, 138, 58, .22);
 }
-
 .btn-secondary {
   color: #f8f4ec;
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.045);
 }
-
-.btn-primary:hover,
-.btn-secondary:hover {
-  transform: translateY(-2px);
+.btn-primary:hover, .btn-secondary:hover { transform: translateY(-2px); }
+.btn-secondary:hover { border-color: rgba(255, 210, 125, .35); background: rgba(255,255,255,.075); }
+.field {
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.05);
+  color: #f8f4ec;
+  padding: .78rem 1rem;
+  outline: none;
 }
-
-.btn-secondary:hover {
-  border-color: rgba(255, 210, 125, .35);
-  background: rgba(255,255,255,.075);
-}
-
-.grid-fade {
-  position: relative;
-}
-
+.field:focus { border-color: rgba(255,186,73,.45); box-shadow: 0 0 0 3px rgba(255,186,73,.08); }
+.field::placeholder { color: #6d675f; }
+.field option { color: #111; }
+.grid-fade { position: relative; }
 .grid-fade::after {
   content: "";
   position: absolute;
@@ -174,16 +126,11 @@ select {
   background: linear-gradient(transparent, var(--background));
   pointer-events: none;
 }
-
 @keyframes float {
   0%, 100% { transform: translate3d(0,0,0) rotate(0deg); }
   50% { transform: translate3d(0,-12px,0) rotate(1.5deg); }
 }
-
-.float-slow {
-  animation: float 8s ease-in-out infinite;
-}
-
+.float-slow { animation: float 8s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .float-slow { animation: none; }
