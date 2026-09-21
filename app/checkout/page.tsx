@@ -13,6 +13,15 @@ export default async function CheckoutPage({ searchParams }: Props) {
   const cart = await getCartSnapshot();
   if (!cart?.items?.length) redirect("/cart");
 
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  const { data: shippingMethods } = await supabase
+    .from("shipping_methods")
+    .select("id,name,description,fee_cents,free_above_cents,is_collection")
+    .eq("is_active", true)
+    .order("sort_order")
+    .order("name");
+
   const subtotal = cart.items.reduce((sum, item) => {
     const variant = Array.isArray(item.product_variants) ? item.product_variants[0] : item.product_variants;
     return variant ? sum + Math.round(Number(item.quantity) * variant.retail_price_cents) : sum;
@@ -57,6 +66,45 @@ export default async function CheckoutPage({ searchParams }: Props) {
             </div>
 
             <div className="glass-soft rounded-[2rem] p-6 sm:p-8">
+              <p className="display-font text-2xl font-semibold">Delivery method</p>
+              <p className="mt-2 text-sm text-stone-500">Choose from the delivery options configured by the store.</p>
+              <div className="mt-5 grid gap-3">
+                {shippingMethods?.length ? shippingMethods.map((method, index) => {
+                  const effectiveFee = method.free_above_cents != null && subtotal >= method.free_above_cents
+                    ? 0
+                    : method.fee_cents;
+
+                  return (
+                    <label key={method.id} className="cursor-pointer">
+                      <input
+                        type="radio"
+                        name="shippingMethodId"
+                        value={method.id}
+                        defaultChecked={index === 0}
+                        className="peer sr-only"
+                      />
+                      <span className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[.03] p-5 transition peer-checked:border-orange-300/40 peer-checked:bg-orange-300/10">
+                        <span>
+                          <span className="display-font block text-lg font-semibold">{method.name}</span>
+                          <span className="mt-1 block text-sm text-stone-500">
+                            {method.description || (method.is_collection ? "Collection" : "Delivery")}
+                          </span>
+                        </span>
+                        <span className="font-semibold text-orange-100">
+                          {effectiveFee === 0 ? "Free" : `R${(effectiveFee / 100).toFixed(2)}`}
+                        </span>
+                      </span>
+                    </label>
+                  );
+                }) : (
+                  <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-100">
+                    No delivery methods are configured yet. Checkout is temporarily unavailable.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="glass-soft rounded-[2rem] p-6 sm:p-8">
               <p className="display-font text-2xl font-semibold">Payment method</p>
               <p className="mt-2 text-sm text-stone-500">You&apos;ll finish securely on the selected gateway.</p>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -97,7 +145,7 @@ export default async function CheckoutPage({ searchParams }: Props) {
               <span className="text-stone-400">Subtotal</span>
               <span className="text-lg font-semibold">R{(subtotal / 100).toFixed(2)}</span>
             </div>
-            <button className="btn-primary mt-6 w-full" type="submit">Continue to payment</button>
+            <button className="btn-primary mt-6 w-full disabled:cursor-not-allowed disabled:opacity-40" type="submit" disabled={!shippingMethods?.length}>Continue to payment</button>
             <Link href="/cart" className="btn-secondary mt-3 w-full">Back to cart</Link>
           </aside>
         </form>
