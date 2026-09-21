@@ -1,7 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getProductImageUrl } from "@/lib/products/image-url";
 import { createClient } from "@/lib/supabase/server";
-import { addVariant, deleteProduct, deleteVariant, updateProduct } from "./actions";
+import {
+  addAlias,
+  addVariant,
+  deleteAlias,
+  deleteProduct,
+  deleteProductImage,
+  deleteVariant,
+  setPrimaryImage,
+  updateProduct,
+  updateTaxonomy,
+  uploadProductImage,
+} from "./actions";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -15,16 +27,41 @@ export default async function EditProductPage({ params, searchParams }: Props) {
   const { error, saved } = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: product }, { data: productTypes }] = await Promise.all([
+  const [
+    { data: product },
+    { data: productTypes },
+    { data: cuisines },
+    { data: foodTypes },
+    { data: flavours },
+    { data: cookingMethods },
+  ] = await Promise.all([
     supabase
       .from("products")
-      .select("id,name,slug,short_description,description,product_type_id,heat_level,is_active,product_variants(id,sku,weight_value,weight_unit,retail_price_cents,stock_quantity)")
+      .select(`
+        id,name,slug,short_description,description,product_type_id,heat_level,is_active,
+        product_variants(id,sku,weight_value,weight_unit,retail_price_cents,stock_quantity),
+        product_aliases(id,alias),
+        product_images(id,storage_path,alt_text,is_primary,sort_order),
+        product_cuisines(cuisine_id),
+        product_food_types(food_type_id),
+        product_flavours(flavour_id),
+        product_cooking_methods(cooking_method_id)
+      `)
       .eq("id", id)
       .maybeSingle(),
     supabase.from("product_types").select("id,name").order("name"),
+    supabase.from("cuisines").select("id,name").order("name"),
+    supabase.from("food_types").select("id,name").order("name"),
+    supabase.from("flavours").select("id,name").order("name"),
+    supabase.from("cooking_methods").select("id,name").order("name"),
   ]);
 
   if (!product) notFound();
+
+  const selectedCuisines = new Set(product.product_cuisines?.map((item) => item.cuisine_id));
+  const selectedFoods = new Set(product.product_food_types?.map((item) => item.food_type_id));
+  const selectedFlavours = new Set(product.product_flavours?.map((item) => item.flavour_id));
+  const selectedMethods = new Set(product.product_cooking_methods?.map((item) => item.cooking_method_id));
 
   return (
     <section>
@@ -71,64 +108,185 @@ export default async function EditProductPage({ params, searchParams }: Props) {
         <button className="btn-primary w-fit" type="submit">Save product</button>
       </form>
 
-      <div className="mt-8 grid gap-6">
-        <section className="glass-soft rounded-[2rem] p-6 sm:p-8">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="display-font text-2xl font-semibold">Variants</p>
-              <p className="mt-1 text-sm text-stone-500">Manage pack sizes, prices and stock.</p>
-            </div>
-            <span className="text-sm text-stone-500">{product.product_variants?.length ?? 0} total</span>
-          </div>
+      <section className="glass-soft mt-8 rounded-[2rem] p-6 sm:p-8">
+        <div>
+          <p className="display-font text-2xl font-semibold">Discovery classification</p>
+          <p className="mt-1 text-sm text-stone-500">
+            These relationships power cuisine, food, flavour and cooking-method discovery.
+          </p>
+        </div>
 
-          <div className="mt-6 grid gap-3">
-            {product.product_variants?.map((variant) => (
-              <div key={variant.id} className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[.025] p-4">
-                <div>
-                  <p className="font-semibold">{variant.weight_value}{variant.weight_unit}</p>
-                  <p className="mt-1 text-xs text-stone-500">
-                    {variant.sku} · R{(variant.retail_price_cents / 100).toFixed(2)} · stock {variant.stock_quantity}
-                  </p>
-                </div>
-                <form action={deleteVariant}>
-                  <input type="hidden" name="productId" value={product.id} />
-                  <input type="hidden" name="variantId" value={variant.id} />
-                  <button type="submit" className="text-sm text-red-300 hover:text-red-200">Delete</button>
-                </form>
-              </div>
+        <form action={updateTaxonomy} className="mt-7 grid gap-7">
+          <input type="hidden" name="productId" value={product.id} />
+          <TaxonomyGroup name="cuisineIds" label="Cuisines" options={cuisines ?? []} selected={selectedCuisines} />
+          <TaxonomyGroup name="foodTypeIds" label="Food types" options={foodTypes ?? []} selected={selectedFoods} />
+          <TaxonomyGroup name="flavourIds" label="Flavours" options={flavours ?? []} selected={selectedFlavours} />
+          <TaxonomyGroup name="cookingMethodIds" label="Cooking methods" options={cookingMethods ?? []} selected={selectedMethods} />
+          <button className="btn-secondary w-fit" type="submit">Save classification</button>
+        </form>
+      </section>
+
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <section className="glass-soft rounded-[2rem] p-6 sm:p-8">
+          <p className="display-font text-2xl font-semibold">Search aliases</p>
+          <p className="mt-1 text-sm text-stone-500">
+            Alternative names like dhana, haldi or common misspellings.
+          </p>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            {product.product_aliases?.map((alias) => (
+              <form key={alias.id} action={deleteAlias} className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm">
+                <input type="hidden" name="productId" value={product.id} />
+                <input type="hidden" name="aliasId" value={alias.id} />
+                <span>{alias.alias}</span>
+                <button type="submit" className="text-stone-600 hover:text-red-300" aria-label={`Remove ${alias.alias}`}>×</button>
+              </form>
             ))}
           </div>
 
-          <form action={addVariant} className="mt-8 grid gap-4 border-t border-white/10 pt-6 md:grid-cols-2">
+          <form action={addAlias} className="mt-5 flex gap-2">
             <input type="hidden" name="productId" value={product.id} />
-            <Field label="SKU"><input name="sku" required className="field" /></Field>
-            <Field label="Weight">
-              <div className="grid grid-cols-[1fr_110px] gap-2">
-                <input name="weightValue" type="number" min="0.001" step="0.001" required className="field" />
-                <select name="weightUnit" defaultValue="g" className="field"><option value="g">g</option><option value="kg">kg</option></select>
-              </div>
-            </Field>
-            <Field label="Retail price (R)"><input name="retailPriceRand" type="number" min="0" step="0.01" required className="field" /></Field>
-            <Field label="Stock quantity"><input name="stockQuantity" type="number" min="0" step="0.001" defaultValue="0" required className="field" /></Field>
-            <button className="btn-secondary w-fit md:col-span-2" type="submit">Add variant</button>
+            <input name="alias" required minLength={2} placeholder="e.g. dhana" className="field" />
+            <button className="btn-secondary shrink-0" type="submit">Add</button>
           </form>
         </section>
 
-        <section className="rounded-[2rem] border border-red-400/15 bg-red-400/[.04] p-6">
-          <p className="display-font text-xl font-semibold">Danger zone</p>
-          <p className="mt-2 text-sm text-stone-500">Deleting a product also removes its variants and relationships.</p>
-          <form action={deleteProduct} className="mt-5">
+        <section className="glass-soft rounded-[2rem] p-6 sm:p-8">
+          <p className="display-font text-2xl font-semibold">Product images</p>
+          <p className="mt-1 text-sm text-stone-500">
+            JPG, PNG, WebP or AVIF, maximum 5MB.
+          </p>
+
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            {product.product_images
+              ?.slice()
+              .sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order)
+              .map((image) => {
+                const url = getProductImageUrl(image.storage_path);
+                return (
+                  <div key={image.id} className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                    {url ? <img src={url} alt={image.alt_text || product.name} className="aspect-square w-full object-cover" /> : null}
+                    <div className="grid gap-2 p-3">
+                      <p className="text-xs text-stone-500">{image.is_primary ? "Primary image" : "Gallery image"}</p>
+                      {!image.is_primary ? (
+                        <form action={setPrimaryImage}>
+                          <input type="hidden" name="productId" value={product.id} />
+                          <input type="hidden" name="imageId" value={image.id} />
+                          <button className="text-left text-xs text-orange-200" type="submit">Make primary</button>
+                        </form>
+                      ) : null}
+                      <form action={deleteProductImage}>
+                        <input type="hidden" name="productId" value={product.id} />
+                        <input type="hidden" name="imageId" value={image.id} />
+                        <input type="hidden" name="storagePath" value={image.storage_path} />
+                        <input type="hidden" name="wasPrimary" value={String(image.is_primary)} />
+                        <button className="text-left text-xs text-red-300" type="submit">Delete image</button>
+                      </form>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+
+          <form action={uploadProductImage} className="mt-5 grid gap-3" encType="multipart/form-data">
             <input type="hidden" name="productId" value={product.id} />
-            <button type="submit" className="rounded-full border border-red-400/20 px-4 py-2 text-sm font-semibold text-red-200 hover:bg-red-400/10">
-              Delete product
-            </button>
+            <input name="image" type="file" accept="image/jpeg,image/png,image/webp,image/avif" required className="field" />
+            <input name="altText" placeholder="Image description for accessibility" className="field" />
+            <button className="btn-secondary w-fit" type="submit">Upload image</button>
           </form>
         </section>
       </div>
+
+      <section className="glass-soft mt-8 rounded-[2rem] p-6 sm:p-8">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="display-font text-2xl font-semibold">Variants</p>
+            <p className="mt-1 text-sm text-stone-500">Manage pack sizes, prices and stock.</p>
+          </div>
+          <span className="text-sm text-stone-500">{product.product_variants?.length ?? 0} total</span>
+        </div>
+
+        <div className="mt-6 grid gap-3">
+          {product.product_variants?.map((variant) => (
+            <div key={variant.id} className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[.025] p-4">
+              <div>
+                <p className="font-semibold">{variant.weight_value}{variant.weight_unit}</p>
+                <p className="mt-1 text-xs text-stone-500">
+                  {variant.sku} · R{(variant.retail_price_cents / 100).toFixed(2)} · stock {variant.stock_quantity}
+                </p>
+              </div>
+              <form action={deleteVariant}>
+                <input type="hidden" name="productId" value={product.id} />
+                <input type="hidden" name="variantId" value={variant.id} />
+                <button type="submit" className="text-sm text-red-300 hover:text-red-200">Delete</button>
+              </form>
+            </div>
+          ))}
+        </div>
+
+        <form action={addVariant} className="mt-8 grid gap-4 border-t border-white/10 pt-6 md:grid-cols-2">
+          <input type="hidden" name="productId" value={product.id} />
+          <Field label="SKU"><input name="sku" required className="field" /></Field>
+          <Field label="Weight">
+            <div className="grid grid-cols-[1fr_110px] gap-2">
+              <input name="weightValue" type="number" min="0.001" step="0.001" required className="field" />
+              <select name="weightUnit" defaultValue="g" className="field"><option value="g">g</option><option value="kg">kg</option></select>
+            </div>
+          </Field>
+          <Field label="Retail price (R)"><input name="retailPriceRand" type="number" min="0" step="0.01" required className="field" /></Field>
+          <Field label="Stock quantity"><input name="stockQuantity" type="number" min="0" step="0.001" defaultValue="0" required className="field" /></Field>
+          <button className="btn-secondary w-fit md:col-span-2" type="submit">Add variant</button>
+        </form>
+      </section>
+
+      <section className="mt-8 rounded-[2rem] border border-red-400/15 bg-red-400/[.04] p-6">
+        <p className="display-font text-xl font-semibold">Danger zone</p>
+        <p className="mt-2 text-sm text-stone-500">Deleting a product also removes its variants, taxonomy relationships, aliases and image records.</p>
+        <form action={deleteProduct} className="mt-5">
+          <input type="hidden" name="productId" value={product.id} />
+          <button type="submit" className="rounded-full border border-red-400/20 px-4 py-2 text-sm font-semibold text-red-200 hover:bg-red-400/10">
+            Delete product
+          </button>
+        </form>
+      </section>
     </section>
   );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <label className="grid gap-2 text-sm"><span className="text-stone-300">{label}</span>{children}</label>;
+}
+
+function TaxonomyGroup({
+  name,
+  label,
+  options,
+  selected,
+}: {
+  name: string;
+  label: string;
+  options: Array<{ id: string; name: string }>;
+  selected: Set<string>;
+}) {
+  return (
+    <fieldset>
+      <legend className="mb-3 text-sm font-semibold text-stone-300">{label}</legend>
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => (
+          <label key={option.id} className="cursor-pointer">
+            <input
+              type="checkbox"
+              name={name}
+              value={option.id}
+              defaultChecked={selected.has(option.id)}
+              className="peer sr-only"
+            />
+            <span className="block rounded-full border border-white/10 bg-white/[.03] px-3 py-2 text-sm text-stone-400 transition peer-checked:border-orange-300/30 peer-checked:bg-orange-300/10 peer-checked:text-orange-100">
+              {option.name}
+            </span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
 }
