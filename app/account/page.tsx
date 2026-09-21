@@ -28,10 +28,10 @@ export default async function AccountPage() {
             <p className="text-sm text-stone-500">Account type</p>
             <p className="display-font mt-2 text-2xl font-semibold capitalize">{profile?.account_type ?? "retail"}</p>
           </div>
-          <div className="glass-soft rounded-[2rem] p-6">
+          <Link href="/account/orders" className="glass-soft rounded-[2rem] p-6 transition hover:-translate-y-0.5">
             <p className="text-sm text-stone-500">Orders</p>
-            <p className="mt-2 text-stone-300">Order history arrives in Phase 2.</p>
-          </div>
+            <p className="display-font mt-2 text-2xl font-semibold">View order history</p>
+          </Link>
         </div>
 
         <div className="mt-8 flex flex-wrap gap-3">
