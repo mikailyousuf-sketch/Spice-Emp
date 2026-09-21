@@ -173,6 +173,8 @@ export async function createOrder(formData: FormData) {
     redirect("/checkout?error=Site%20URL%20is%20not%20configured.");
   }
 
+  let checkoutUrl: string;
+
   try {
     const provider = getPaymentProvider(parsed.data.paymentProvider);
     const successUrl =
@@ -211,7 +213,7 @@ export async function createOrder(formData: FormData) {
     }).eq("id", cart.id);
 
     await clearCartCookie();
-    redirect(payment.checkoutUrl);
+    checkoutUrl = payment.checkoutUrl;
   } catch (error) {
     await cancelOrderAndRestoreStock(
       order.id,
@@ -223,4 +225,6 @@ export async function createOrder(formData: FormData) {
       error instanceof Error ? error.message : "Payment initialization failed.",
     )}`);
   }
+
+  redirect(checkoutUrl);
 }
