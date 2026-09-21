@@ -25,6 +25,10 @@ const variantSchema = z.object({
   retailPriceRand: z.coerce.number().nonnegative(),
   stockQuantity: z.coerce.number().nonnegative(),
   lowStockThreshold: z.coerce.number().nonnegative(),
+  shippingWeightKg: z.coerce.number().positive(),
+  lengthCm: z.coerce.number().positive(),
+  widthCm: z.coerce.number().positive(),
+  heightCm: z.coerce.number().positive(),
 });
 
 const taxonomySchema = z.object({
@@ -94,6 +98,10 @@ export async function addVariant(formData: FormData) {
     retailPriceRand: formData.get("retailPriceRand"),
     stockQuantity: formData.get("stockQuantity"),
     lowStockThreshold: formData.get("lowStockThreshold"),
+    shippingWeightKg: formData.get("shippingWeightKg"),
+    lengthCm: formData.get("lengthCm"),
+    widthCm: formData.get("widthCm"),
+    heightCm: formData.get("heightCm"),
   });
 
   if (!parsed.success) {
@@ -109,6 +117,10 @@ export async function addVariant(formData: FormData) {
     retail_price_cents: Math.round(parsed.data.retailPriceRand * 100),
     stock_quantity: parsed.data.stockQuantity,
     low_stock_threshold: parsed.data.lowStockThreshold,
+    shipping_weight_kg: parsed.data.shippingWeightKg,
+    length_cm: parsed.data.lengthCm,
+    width_cm: parsed.data.widthCm,
+    height_cm: parsed.data.heightCm,
   });
 
   if (error) {
@@ -134,6 +146,10 @@ export async function updateVariant(formData: FormData) {
     retailPriceRand: formData.get("retailPriceRand"),
     stockQuantity: formData.get("stockQuantity"),
     lowStockThreshold: formData.get("lowStockThreshold"),
+    shippingWeightKg: formData.get("shippingWeightKg"),
+    lengthCm: formData.get("lengthCm"),
+    widthCm: formData.get("widthCm"),
+    heightCm: formData.get("heightCm"),
   });
 
   if (!parsed.success) {
@@ -150,6 +166,10 @@ export async function updateVariant(formData: FormData) {
       retail_price_cents: Math.round(parsed.data.retailPriceRand * 100),
       stock_quantity: parsed.data.stockQuantity,
       low_stock_threshold: parsed.data.lowStockThreshold,
+      shipping_weight_kg: parsed.data.shippingWeightKg,
+      length_cm: parsed.data.lengthCm,
+      width_cm: parsed.data.widthCm,
+      height_cm: parsed.data.heightCm,
       updated_at: new Date().toISOString(),
     })
     .eq("id", parsed.data.variantId)
