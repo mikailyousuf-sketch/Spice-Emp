@@ -1,11 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fffaf3;
-  --foreground: #2a1d16;
-  --accent: #9a3412;
-  --muted: #6b5a50;
-  --card: #ffffff;
+  --background: #080806;
+  --background-soft: #11100d;
+  --foreground: #f8f4ec;
+  --muted: #a8a096;
+  --line: rgba(255, 255, 255, 0.10);
+  --glass: rgba(255, 255, 255, 0.055);
+  --glass-strong: rgba(255, 255, 255, 0.09);
+  --saffron: #ffba49;
+  --paprika: #e45b32;
+  --chilli: #b92f2a;
+  --lime: #c9e265;
 }
 
 * {
@@ -14,16 +20,171 @@
 
 html {
   background: var(--background);
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  background: var(--background);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(228, 91, 50, 0.16), transparent 30rem),
+    radial-gradient(circle at 88% 18%, rgba(255, 186, 73, 0.10), transparent 26rem),
+    linear-gradient(180deg, #090907 0%, #0a0907 45%, #070705 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), sans-serif;
+  min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.12;
+  background-image:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: linear-gradient(to bottom, black, transparent 78%);
+  z-index: -1;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(255, 186, 73, 0.28);
+}
+
+.site-shell {
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.display-font {
+  font-family: var(--font-space), sans-serif;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.glass {
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.035));
+  border: 1px solid var(--line);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 30px 80px rgba(0,0,0,.28);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.glass-soft {
+  background: rgba(255,255,255,.035);
+  border: 1px solid rgba(255,255,255,.075);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.glow-ring {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(1px);
+  border: 1px solid rgba(255, 186, 73, 0.25);
+  box-shadow:
+    0 0 90px rgba(228, 91, 50, 0.20),
+    inset 0 0 60px rgba(255, 186, 73, 0.07);
+}
+
+.section-wrap {
+  width: min(1180px, calc(100% - 40px));
+  margin-inline: auto;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  color: #e8c79b;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 1.8rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--saffron));
+}
+
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  min-height: 3rem;
+  border-radius: 999px;
+  padding: .78rem 1.25rem;
+  font-weight: 700;
+  transition: transform .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.btn-primary {
+  color: #140d07;
+  background: linear-gradient(135deg, #ffd27d, #f28a3a);
+  box-shadow: 0 12px 45px rgba(242, 138, 58, .22);
+}
+
+.btn-secondary {
+  color: #f8f4ec;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.045);
+}
+
+.btn-primary:hover,
+.btn-secondary:hover {
+  transform: translateY(-2px);
+}
+
+.btn-secondary:hover {
+  border-color: rgba(255, 210, 125, .35);
+  background: rgba(255,255,255,.075);
+}
+
+.grid-fade {
+  position: relative;
+}
+
+.grid-fade::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 8rem;
+  background: linear-gradient(transparent, var(--background));
+  pointer-events: none;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate3d(0,0,0) rotate(0deg); }
+  50% { transform: translate3d(0,-12px,0) rotate(1.5deg); }
+}
+
+.float-slow {
+  animation: float 8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .float-slow { animation: none; }
 }
