@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Cormorant_Garamond, Inter } from "next/font/google";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import "./globals.css";
@@ -10,26 +10,26 @@ const inter = Inter({
   display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  variable: "--font-space",
+  variable: "--font-display",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Spice Emp",
-    template: "%s | Spice Emp",
+    default: "The Glided Pantry",
+    template: "%s | The Glided Pantry",
   },
   description:
-    "A modern South African spice marketplace for home cooks, chefs and businesses.",
+    "A modern South African pantry for premium spices, blends and culinary discovery.",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+    <html lang="en" className={`${inter.variable} ${cormorant.variable}`}>
       <body>
         <div className="site-shell">
           <Navbar />
