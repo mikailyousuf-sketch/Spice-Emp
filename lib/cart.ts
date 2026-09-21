@@ -73,6 +73,7 @@ export async function getCartSnapshot() {
       id,quantity,variant_id,
       product_variants(
         id,sku,weight_value,weight_unit,retail_price_cents,stock_quantity,is_active,
+        shipping_weight_kg,length_cm,width_cm,height_cm,
         products(id,name,slug,is_active,product_images(id,storage_path,alt_text,is_primary,sort_order))
       )
     `)
