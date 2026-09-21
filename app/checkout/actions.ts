@@ -153,20 +153,30 @@ export async function createOrder(formData: FormData) {
     redirect(`/checkout?error=${encodeURIComponent(itemsError.message)}`);
   }
 
-  for (const row of normalized) {
-    const { error: stockError } = await admin
-      .from("product_variants")
-      .update({
-        stock_quantity: row.stock - row.quantity,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", row.variant.id)
-      .gte("stock_quantity", row.quantity);
+  const reserved: Array<{ variantId: string; quantity: number }> = [];
 
-    if (stockError) {
+  for (const row of normalized) {
+    const { data: decremented, error: stockError } = await admin.rpc(
+      "decrement_variant_stock",
+      {
+        target_variant_id: row.variant.id,
+        requested_quantity: row.quantity,
+      },
+    );
+
+    if (stockError || !decremented) {
+      for (const restore of reserved) {
+        await admin.rpc("increment_variant_stock", {
+          target_variant_id: restore.variantId,
+          restore_quantity: restore.quantity,
+        });
+      }
+
       await admin.from("orders").update({ status: "cancelled" }).eq("id", order.id);
       redirect("/cart?error=Stock%20changed%20during%20checkout.%20Please%20review%20your%20cart.");
     }
+
+    reserved.push({ variantId: row.variant.id, quantity: row.quantity });
   }
 
   await admin
