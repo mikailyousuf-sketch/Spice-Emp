@@ -40,7 +40,7 @@ export default async function EditProductPage({ params, searchParams }: Props) {
       .from("products")
       .select(`
         id,name,slug,short_description,description,product_type_id,heat_level,is_active,
-        product_variants(id,sku,weight_value,weight_unit,retail_price_cents,stock_quantity),
+        product_variants(id,sku,weight_value,weight_unit,retail_price_cents,stock_quantity,low_stock_threshold),
         product_aliases(id,alias),
         product_images(id,storage_path,alt_text,is_primary,sort_order),
         product_cuisines(cuisine_id),
@@ -240,6 +240,9 @@ export default async function EditProductPage({ params, searchParams }: Props) {
               <Field label="Stock">
                 <input name="stockQuantity" type="number" min="0" step="0.001" defaultValue={variant.stock_quantity} required className="field" />
               </Field>
+              <Field label="Low stock at">
+                <input name="lowStockThreshold" type="number" min="0" step="0.001" defaultValue={variant.low_stock_threshold} required className="field" />
+              </Field>
               <div className="flex items-end gap-2">
                 <button className="btn-secondary !min-h-11 !px-4 !py-2 text-sm" type="submit">Save</button>
                 <button
@@ -265,6 +268,7 @@ export default async function EditProductPage({ params, searchParams }: Props) {
           </Field>
           <Field label="Retail price (R)"><input name="retailPriceRand" type="number" min="0" step="0.01" required className="field" /></Field>
           <Field label="Stock quantity"><input name="stockQuantity" type="number" min="0" step="0.001" defaultValue="0" required className="field" /></Field>
+          <Field label="Low stock threshold"><input name="lowStockThreshold" type="number" min="0" step="0.001" defaultValue="0" required className="field" /></Field>
           <button className="btn-secondary w-fit md:col-span-2" type="submit">Add variant</button>
         </form>
       </section>
