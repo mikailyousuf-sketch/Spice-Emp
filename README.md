@@ -22,6 +22,22 @@ Phase 1 foundation is in progress and now includes:
 - Editable variants, inventory and low-stock thresholds
 - GitHub CI type/build checks
 
+## Phase 2 commerce
+
+The current commerce layer includes:
+
+- Guest cart stored with a secure HTTP-only cart token
+- Add/update/remove cart items
+- Live stock validation
+- Checkout delivery form
+- Pending order creation with immutable price/SKU/product snapshots
+- Atomic stock reservation to reduce overselling risk
+- Guest order confirmation via separate order access token
+- Signed-in customer order history and detail pages
+- Admin order list, detail and manual status management
+
+Payment-provider integration is the next commerce step.
+
 ## Local setup
 
 1. Install Node.js 22 or newer.
@@ -30,7 +46,8 @@ Phase 1 foundation is in progress and now includes:
 4. Add:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-5. Run `npm run dev`.
+5. Add `SUPABASE_SERVICE_ROLE_KEY` to `.env.local` for secure server-side guest carts and checkout. Never expose this key to browser code.
+6. Run `npm run dev`.
 
 ## Apply Supabase migrations
 
@@ -41,6 +58,9 @@ Run the SQL files in order using the Supabase SQL editor, or link the Supabase C
 3. `supabase/migrations/0003_seed_taxonomy.sql`
 4. `supabase/migrations/0004_product_media.sql`
 5. `supabase/migrations/0005_search_indexes.sql`
+6. `supabase/migrations/0006_commerce_core.sql`
+7. `supabase/migrations/0007_order_access_tokens.sql`
+8. `supabase/migrations/0008_atomic_stock.sql`
 
 Do not skip migration 0002. It creates profile/user-role automation and the admin write policies.
 Migration 0004 creates the public product-image Storage bucket and admin-only write policies.
