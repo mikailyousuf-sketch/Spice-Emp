@@ -26,6 +26,19 @@ const variantSchema = z.object({
   stockQuantity: z.coerce.number().nonnegative(),
 });
 
+const taxonomySchema = z.object({
+  productId: z.string().uuid(),
+  cuisineIds: z.array(z.string().uuid()),
+  foodTypeIds: z.array(z.string().uuid()),
+  flavourIds: z.array(z.string().uuid()),
+  cookingMethodIds: z.array(z.string().uuid()),
+});
+
+function productAdminUrl(productId: string, message?: string) {
+  const suffix = message ? `?error=${encodeURIComponent(message)}` : "?saved=1";
+  return `/admin/products/${productId}${suffix}`;
+}
+
 export async function updateProduct(formData: FormData) {
   await requireAdmin();
 
@@ -60,13 +73,13 @@ export async function updateProduct(formData: FormData) {
     .eq("id", parsed.data.id);
 
   if (error) {
-    redirect(`/admin/products/${parsed.data.id}?error=${encodeURIComponent(error.message)}`);
+    redirect(productAdminUrl(parsed.data.id, error.message));
   }
 
   revalidatePath("/shop");
   revalidatePath(`/spices/${parsed.data.slug}`);
   revalidatePath("/admin/products");
-  redirect(`/admin/products/${parsed.data.id}?saved=1`);
+  redirect(productAdminUrl(parsed.data.id));
 }
 
 export async function addVariant(formData: FormData) {
@@ -82,7 +95,7 @@ export async function addVariant(formData: FormData) {
   });
 
   if (!parsed.success) {
-    redirect(`/admin/products/${formData.get("productId")}?error=Please%20check%20the%20variant%20details.`);
+    redirect(productAdminUrl(String(formData.get("productId")), "Please check the variant details."));
   }
 
   const supabase = await createClient();
@@ -96,12 +109,12 @@ export async function addVariant(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/admin/products/${parsed.data.productId}?error=${encodeURIComponent(error.message)}`);
+    redirect(productAdminUrl(parsed.data.productId, error.message));
   }
 
   revalidatePath("/shop");
   revalidatePath("/admin/products");
-  redirect(`/admin/products/${parsed.data.productId}?saved=1`);
+  redirect(productAdminUrl(parsed.data.productId));
 }
 
 export async function deleteVariant(formData: FormData) {
@@ -114,12 +127,229 @@ export async function deleteVariant(formData: FormData) {
   const { error } = await supabase.from("product_variants").delete().eq("id", variantId);
 
   if (error) {
-    redirect(`/admin/products/${productId}?error=${encodeURIComponent(error.message)}`);
+    redirect(productAdminUrl(productId, error.message));
   }
 
   revalidatePath("/shop");
   revalidatePath("/admin/products");
-  redirect(`/admin/products/${productId}?saved=1`);
+  redirect(productAdminUrl(productId));
+}
+
+export async function updateTaxonomy(formData: FormData) {
+  await requireAdmin();
+
+  const parsed = taxonomySchema.safeParse({
+    productId: formData.get("productId"),
+    cuisineIds: formData.getAll("cuisineIds"),
+    foodTypeIds: formData.getAll("foodTypeIds"),
+    flavourIds: formData.getAll("flavourIds"),
+    cookingMethodIds: formData.getAll("cookingMethodIds"),
+  });
+
+  if (!parsed.success) {
+    redirect(productAdminUrl(String(formData.get("productId")), "Invalid taxonomy selection."));
+  }
+
+  const supabase = await createClient();
+  const productId = parsed.data.productId;
+
+  const tables = [
+    ["product_cuisines", "cuisine_id", parsed.data.cuisineIds],
+    ["product_food_types", "food_type_id", parsed.data.foodTypeIds],
+    ["product_flavours", "flavour_id", parsed.data.flavourIds],
+    ["product_cooking_methods", "cooking_method_id", parsed.data.cookingMethodIds],
+  ] as const;
+
+  for (const [table, foreignKey, ids] of tables) {
+    const { error: deleteError } = await supabase.from(table).delete().eq("product_id", productId);
+
+    if (deleteError) {
+      redirect(productAdminUrl(productId, deleteError.message));
+    }
+
+    if (ids.length) {
+      const { error: insertError } = await supabase
+        .from(table)
+        .insert(ids.map((id) => ({ product_id: productId, [foreignKey]: id })));
+
+      if (insertError) {
+        redirect(productAdminUrl(productId, insertError.message));
+      }
+    }
+  }
+
+  revalidatePath("/shop");
+  redirect(productAdminUrl(productId));
+}
+
+export async function addAlias(formData: FormData) {
+  await requireAdmin();
+
+  const productId = z.string().uuid().parse(formData.get("productId"));
+  const alias = z.string().trim().min(2).max(100).parse(formData.get("alias"));
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("product_aliases").insert({
+    product_id: productId,
+    alias,
+  });
+
+  if (error) {
+    redirect(productAdminUrl(productId, error.message));
+  }
+
+  redirect(productAdminUrl(productId));
+}
+
+export async function deleteAlias(formData: FormData) {
+  await requireAdmin();
+
+  const productId = z.string().uuid().parse(formData.get("productId"));
+  const aliasId = z.string().uuid().parse(formData.get("aliasId"));
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("product_aliases").delete().eq("id", aliasId);
+
+  if (error) {
+    redirect(productAdminUrl(productId, error.message));
+  }
+
+  redirect(productAdminUrl(productId));
+}
+
+export async function uploadProductImage(formData: FormData) {
+  await requireAdmin();
+
+  const productId = z.string().uuid().parse(formData.get("productId"));
+  const file = formData.get("image");
+
+  if (!(file instanceof File) || file.size === 0) {
+    redirect(productAdminUrl(productId, "Choose an image to upload."));
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    redirect(productAdminUrl(productId, "Images must be 5MB or smaller."));
+  }
+
+  const allowed = new Map([
+    ["image/jpeg", "jpg"],
+    ["image/png", "png"],
+    ["image/webp", "webp"],
+    ["image/avif", "avif"],
+  ]);
+
+  const extension = allowed.get(file.type);
+
+  if (!extension) {
+    redirect(productAdminUrl(productId, "Use a JPG, PNG, WebP or AVIF image."));
+  }
+
+  const supabase = await createClient();
+  const storagePath = `${productId}/${crypto.randomUUID()}.${extension}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("product-images")
+    .upload(storagePath, file, {
+      contentType: file.type,
+      upsert: false,
+    });
+
+  if (uploadError) {
+    redirect(productAdminUrl(productId, uploadError.message));
+  }
+
+  const { count } = await supabase
+    .from("product_images")
+    .select("*", { count: "exact", head: true })
+    .eq("product_id", productId);
+
+  const { error: rowError } = await supabase.from("product_images").insert({
+    product_id: productId,
+    storage_path: storagePath,
+    alt_text: String(formData.get("altText") || "").trim() || null,
+    is_primary: (count ?? 0) === 0,
+    sort_order: count ?? 0,
+  });
+
+  if (rowError) {
+    await supabase.storage.from("product-images").remove([storagePath]);
+    redirect(productAdminUrl(productId, rowError.message));
+  }
+
+  revalidatePath("/shop");
+  redirect(productAdminUrl(productId));
+}
+
+export async function setPrimaryImage(formData: FormData) {
+  await requireAdmin();
+
+  const productId = z.string().uuid().parse(formData.get("productId"));
+  const imageId = z.string().uuid().parse(formData.get("imageId"));
+  const supabase = await createClient();
+
+  const { error: clearError } = await supabase
+    .from("product_images")
+    .update({ is_primary: false })
+    .eq("product_id", productId);
+
+  if (clearError) {
+    redirect(productAdminUrl(productId, clearError.message));
+  }
+
+  const { error } = await supabase
+    .from("product_images")
+    .update({ is_primary: true })
+    .eq("id", imageId)
+    .eq("product_id", productId);
+
+  if (error) {
+    redirect(productAdminUrl(productId, error.message));
+  }
+
+  revalidatePath("/shop");
+  redirect(productAdminUrl(productId));
+}
+
+export async function deleteProductImage(formData: FormData) {
+  await requireAdmin();
+
+  const productId = z.string().uuid().parse(formData.get("productId"));
+  const imageId = z.string().uuid().parse(formData.get("imageId"));
+  const storagePath = z.string().min(1).parse(formData.get("storagePath"));
+  const wasPrimary = formData.get("wasPrimary") === "true";
+
+  const supabase = await createClient();
+
+  const { error: storageError } = await supabase.storage
+    .from("product-images")
+    .remove([storagePath]);
+
+  if (storageError) {
+    redirect(productAdminUrl(productId, storageError.message));
+  }
+
+  const { error } = await supabase.from("product_images").delete().eq("id", imageId);
+
+  if (error) {
+    redirect(productAdminUrl(productId, error.message));
+  }
+
+  if (wasPrimary) {
+    const { data: nextImage } = await supabase
+      .from("product_images")
+      .select("id")
+      .eq("product_id", productId)
+      .order("sort_order")
+      .limit(1)
+      .maybeSingle();
+
+    if (nextImage) {
+      await supabase.from("product_images").update({ is_primary: true }).eq("id", nextImage.id);
+    }
+  }
+
+  revalidatePath("/shop");
+  redirect(productAdminUrl(productId));
 }
 
 export async function deleteProduct(formData: FormData) {
@@ -127,10 +357,22 @@ export async function deleteProduct(formData: FormData) {
 
   const productId = z.string().uuid().parse(formData.get("productId"));
   const supabase = await createClient();
+
+  const { data: images } = await supabase
+    .from("product_images")
+    .select("storage_path")
+    .eq("product_id", productId);
+
+  if (images?.length) {
+    await supabase.storage
+      .from("product-images")
+      .remove(images.map((image) => image.storage_path));
+  }
+
   const { error } = await supabase.from("products").delete().eq("id", productId);
 
   if (error) {
-    redirect(`/admin/products/${productId}?error=${encodeURIComponent(error.message)}`);
+    redirect(productAdminUrl(productId, error.message));
   }
 
   revalidatePath("/shop");
