@@ -1,20 +1,23 @@
 import { notFound } from "next/navigation";
+import { addToCart } from "@/app/cart/actions";
 import { getProductImageUrl } from "@/lib/products/image-url";
 import { createClient } from "@/lib/supabase/server";
 
 type Props = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ error?: string }>;
 };
 
-export default async function SpicePage({ params }: Props) {
+export default async function SpicePage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { error } = await searchParams;
   const supabase = await createClient();
 
   const { data: product } = await supabase
     .from("products")
     .select(`
       id,name,slug,description,short_description,heat_level,country_of_origin,
-      product_variants(id,sku,weight_value,weight_unit,retail_price_cents,stock_quantity),
+      product_variants(id,sku,weight_value,weight_unit,retail_price_cents,stock_quantity,is_active),
       product_images(id,storage_path,alt_text,is_primary,sort_order),
       product_cuisines(cuisines(name)),
       product_food_types(food_types(name)),
@@ -42,6 +45,8 @@ export default async function SpicePage({ params }: Props) {
     ...(product.product_flavours ?? []).flatMap((item) => relationNames(item.flavours)),
     ...(product.product_cooking_methods ?? []).flatMap((item) => relationNames(item.cooking_methods)),
   ];
+
+  const variants = (product.product_variants ?? []).filter((variant) => variant.is_active);
 
   return (
     <main className="pt-32">
@@ -92,18 +97,53 @@ export default async function SpicePage({ params }: Props) {
             </div>
           ) : null}
 
+          {error ? (
+            <p className="mt-6 rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-100">
+              {error}
+            </p>
+          ) : null}
+
           <div className="mt-8 grid gap-3">
-            {product.product_variants?.map((variant) => (
-              <div key={variant.id} className="glass-soft flex items-center justify-between rounded-2xl p-4">
-                <div>
-                  <p className="font-semibold">{variant.weight_value}{variant.weight_unit}</p>
-                  <p className="mt-1 text-xs text-stone-600">
-                    SKU {variant.sku} · {variant.stock_quantity > 0 ? "In stock" : "Out of stock"}
-                  </p>
+            {variants.map((variant) => {
+              const inStock = Number(variant.stock_quantity) > 0;
+
+              return (
+                <div key={variant.id} className="glass-soft rounded-2xl p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <p className="font-semibold">{variant.weight_value}{variant.weight_unit}</p>
+                      <p className="mt-1 text-xs text-stone-600">
+                        SKU {variant.sku} · {inStock ? `${variant.stock_quantity} in stock` : "Out of stock"}
+                      </p>
+                    </div>
+                    <p className="font-semibold text-orange-100">R{(variant.retail_price_cents / 100).toFixed(2)}</p>
+                  </div>
+
+                  <form action={addToCart} className="mt-4 flex flex-wrap items-end gap-2">
+                    <input type="hidden" name="variantId" value={variant.id} />
+                    <label className="grid gap-2 text-xs text-stone-500">
+                      Quantity
+                      <input
+                        name="quantity"
+                        type="number"
+                        min="1"
+                        max={variant.stock_quantity}
+                        defaultValue="1"
+                        disabled={!inStock}
+                        className="field !w-24"
+                      />
+                    </label>
+                    <button
+                      type="submit"
+                      disabled={!inStock}
+                      className="btn-primary disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {inStock ? "Add to cart" : "Out of stock"}
+                    </button>
+                  </form>
                 </div>
-                <p className="font-semibold text-orange-100">R{(variant.retail_price_cents / 100).toFixed(2)}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
