@@ -22,6 +22,7 @@ const checkoutSchema = z.object({
   postalCode: z.string().trim().min(3).max(12),
   notes: z.string().trim().max(1000).optional(),
   paymentProvider: z.enum(["yoco", "paystack"]),
+  shippingMethodId: z.string().uuid(),
 });
 
 function makeOrderNumber() {
@@ -44,6 +45,7 @@ export async function createOrder(formData: FormData) {
     postalCode: formData.get("postalCode"),
     notes: formData.get("notes") || undefined,
     paymentProvider: formData.get("paymentProvider"),
+    shippingMethodId: formData.get("shippingMethodId"),
   });
 
   if (!parsed.success) redirect("/checkout?error=Please%20check%20your%20checkout%20details.");
@@ -72,7 +74,24 @@ export async function createOrder(formData: FormData) {
     (sum, row) => sum + Math.round(row.quantity * row.variant.retail_price_cents),
     0,
   );
-  const totalCents = subtotalCents;
+
+  const { data: shippingMethod, error: shippingError } = await admin
+    .from("shipping_methods")
+    .select("id,name,fee_cents,free_above_cents,is_active")
+    .eq("id", parsed.data.shippingMethodId)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (shippingError || !shippingMethod) {
+    redirect("/checkout?error=Please%20choose%20a%20valid%20delivery%20method.");
+  }
+
+  const shippingCents =
+    shippingMethod.free_above_cents != null && subtotalCents >= shippingMethod.free_above_cents
+      ? 0
+      : shippingMethod.fee_cents;
+
+  const totalCents = subtotalCents + shippingCents;
 
   const address = {
     first_name: parsed.data.firstName,
@@ -97,7 +116,9 @@ export async function createOrder(formData: FormData) {
       email: parsed.data.email,
       phone: parsed.data.phone,
       subtotal_cents: subtotalCents,
-      shipping_cents: 0,
+      shipping_cents: shippingCents,
+      shipping_method_id: shippingMethod.id,
+      shipping_method_snapshot: shippingMethod.name,
       discount_cents: 0,
       tax_cents: 0,
       total_cents: totalCents,
