@@ -19,7 +19,17 @@ export type CreatePaymentResult = {
   raw: unknown;
 };
 
+export type VerifyPaymentResult = {
+  provider: PaymentProviderName;
+  reference: string;
+  status: "pending" | "succeeded" | "failed" | "cancelled" | "refunded";
+  amountCents: number;
+  currency: string;
+  raw: unknown;
+};
+
 export interface PaymentProvider {
   readonly name: PaymentProviderName;
   createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult>;
+  verifyPayment(reference: string): Promise<VerifyPaymentResult>;
 }
