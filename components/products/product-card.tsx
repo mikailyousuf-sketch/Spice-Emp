@@ -45,6 +45,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="jar-stage">
           <div className="jar-shell">
             <div className="jar-lid" />
+
             {imageUrl ? (
               <img
                 src={imageUrl}
@@ -52,26 +53,30 @@ export function ProductCard({ product }: ProductCardProps) {
                 className="jar-image"
               />
             ) : (
-              <div className="absolute inset-[10%_0_0] bg-[linear-gradient(180deg,#d5b26f,#8e6a34)] opacity-80" />
+              <div className="absolute inset-[10%_0_0] bg-[linear-gradient(180deg,#d5b26f,#8e6a34)] opacity-85" />
             )}
+
             <div className="jar-label">
-              <span className="script-accent block text-[1.65rem] leading-none text-black">
+              <img
+                src="/branding/glided-monogram.webp"
+                alt=""
+                className="mx-auto h-8 w-auto invert"
+              />
+              <span className="mt-2 block text-[10px] font-semibold uppercase tracking-[.18em] text-neutral-500">
                 {product.name}
               </span>
-              <span className="mt-1 block text-[10px] font-semibold uppercase tracking-[.18em] text-neutral-500">
-                The Glided Pantry
-              </span>
             </div>
+
             <div className="jar-shine" />
           </div>
         </div>
 
         <div className="-mt-1">
-          <p className="text-xs uppercase tracking-[.18em] text-neutral-400">
-            Heat {product.heat_level}/5
-          </p>
-          <h2 className="display-font mt-2 text-2xl font-semibold">{product.name}</h2>
-          <p className="mt-2 text-base font-semibold">
+          <p className="micro-label">Heat {product.heat_level}/5</p>
+          <h2 className="display-font mt-2 text-[1.8rem] font-semibold leading-none tracking-[-.025em]">
+            {product.name}
+          </h2>
+          <p className="mt-3 text-sm font-semibold tracking-[.02em]">
             {cheapest ? `R${(cheapest.retail_price_cents / 100).toFixed(2)}` : "Out of stock"}
           </p>
         </div>
@@ -83,9 +88,9 @@ export function ProductCard({ product }: ProductCardProps) {
           <input type="hidden" name="quantity" value="1" />
           <button
             type="submit"
-            className="btn-secondary !min-h-10 !px-5 !py-2 text-sm"
+            className="rounded-full border border-black/10 bg-white/35 px-5 py-2 text-xs font-semibold uppercase tracking-[.13em] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-black hover:text-white"
           >
-            + Quick add
+            Quick add +
           </button>
         </form>
       ) : null}
