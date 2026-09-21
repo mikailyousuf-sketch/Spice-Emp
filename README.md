@@ -41,6 +41,7 @@ The current commerce layer includes:
 - Payment attempt records linked to orders
 - Payment success/failure/pending routes
 - Automatic order/payment-state updates after verification
+- Configurable shipping/collection methods, fees and free-shipping thresholds
 
 ## Local setup
 
@@ -73,11 +74,13 @@ Run the SQL files in order using the Supabase SQL editor, or link the Supabase C
 7. `supabase/migrations/0007_order_access_tokens.sql`
 8. `supabase/migrations/0008_atomic_stock.sql`
 9. `supabase/migrations/0009_payments.sql`
+10. `supabase/migrations/0010_shipping.sql`
 
 Do not skip migration 0002. It creates profile/user-role automation and the admin write policies.
 Migration 0004 creates the public product-image Storage bucket and admin-only write policies.
 Migration 0005 adds search/filter indexes for names, aliases and discovery relationships.
 Migration 0009 adds payment-attempt tracking for Yoco and Paystack.
+Migration 0010 adds configurable shipping methods and order shipping snapshots.
 
 ## Payment testing
 
@@ -132,6 +135,7 @@ Admin users can currently:
 - manage stock and low-stock thresholds
 - manage aliases, taxonomy and product media
 - manage orders and statuses
+- configure shipping and collection methods
 
 The public `/shop` page reads active catalogue data from Supabase and supports multidimensional filtering and alias-aware search.
 
