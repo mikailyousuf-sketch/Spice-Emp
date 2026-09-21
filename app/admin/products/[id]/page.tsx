@@ -12,6 +12,7 @@ import {
   setPrimaryImage,
   updateProduct,
   updateTaxonomy,
+  updateVariant,
   uploadProductImage,
 } from "./actions";
 
@@ -208,19 +209,48 @@ export default async function EditProductPage({ params, searchParams }: Props) {
 
         <div className="mt-6 grid gap-3">
           {product.product_variants?.map((variant) => (
-            <div key={variant.id} className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[.025] p-4">
-              <div>
-                <p className="font-semibold">{variant.weight_value}{variant.weight_unit}</p>
-                <p className="mt-1 text-xs text-stone-500">
-                  {variant.sku} · R{(variant.retail_price_cents / 100).toFixed(2)} · stock {variant.stock_quantity}
-                </p>
+            <form
+              key={variant.id}
+              action={updateVariant}
+              className="grid gap-3 rounded-2xl border border-white/10 bg-white/[.025] p-4 md:grid-cols-[1fr_1fr_1fr_1fr_auto]"
+            >
+              <input type="hidden" name="productId" value={product.id} />
+              <input type="hidden" name="variantId" value={variant.id} />
+              <Field label="SKU"><input name="sku" defaultValue={variant.sku} required className="field" /></Field>
+              <Field label="Weight">
+                <div className="grid grid-cols-[1fr_90px] gap-2">
+                  <input name="weightValue" type="number" min="0.001" step="0.001" defaultValue={variant.weight_value} required className="field" />
+                  <select name="weightUnit" defaultValue={variant.weight_unit} className="field">
+                    <option value="g">g</option>
+                    <option value="kg">kg</option>
+                  </select>
+                </div>
+              </Field>
+              <Field label="Retail price (R)">
+                <input
+                  name="retailPriceRand"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  defaultValue={(variant.retail_price_cents / 100).toFixed(2)}
+                  required
+                  className="field"
+                />
+              </Field>
+              <Field label="Stock">
+                <input name="stockQuantity" type="number" min="0" step="0.001" defaultValue={variant.stock_quantity} required className="field" />
+              </Field>
+              <div className="flex items-end gap-2">
+                <button className="btn-secondary !min-h-11 !px-4 !py-2 text-sm" type="submit">Save</button>
+                <button
+                  formAction={deleteVariant}
+                  className="min-h-11 rounded-full border border-red-400/20 px-4 py-2 text-sm font-semibold text-red-200 hover:bg-red-400/10"
+                  type="submit"
+                >
+                  Delete
+                </button>
               </div>
-              <form action={deleteVariant}>
-                <input type="hidden" name="productId" value={product.id} />
-                <input type="hidden" name="variantId" value={variant.id} />
-                <button type="submit" className="text-sm text-red-300 hover:text-red-200">Delete</button>
-              </form>
-            </div>
+            </form>
           ))}
         </div>
 
