@@ -19,7 +19,7 @@ export default async function AdminOrderPage({ params, searchParams }: Props) {
     .select(`
       id,order_number,email,phone,status,payment_status,fulfilment_status,
       subtotal_cents,shipping_cents,discount_cents,tax_cents,total_cents,
-      shipping_address,billing_address,notes,created_at,
+      shipping_method_snapshot,shipping_address,billing_address,notes,created_at,
       order_items(id,product_name_snapshot,variant_name_snapshot,sku_snapshot,quantity,unit_price_cents,total_price_cents)
     `)
     .eq("id", id)
@@ -69,6 +69,9 @@ export default async function AdminOrderPage({ params, searchParams }: Props) {
 
           <section className="glass-soft rounded-[2rem] p-6">
             <p className="display-font text-2xl font-semibold">Delivery</p>
+            {order.shipping_method_snapshot ? (
+              <p className="mt-3 text-sm font-medium text-orange-100">{order.shipping_method_snapshot}</p>
+            ) : null}
             <div className="mt-4 text-sm leading-7 text-stone-400">
               <p>{address.first_name} {address.last_name}</p>
               {address.company ? <p>{address.company}</p> : null}
