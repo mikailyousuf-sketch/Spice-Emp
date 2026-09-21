@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { addToCart } from "@/app/cart/actions";
 import { getProductImageUrl } from "@/lib/products/image-url";
 
 type Variant = {
@@ -30,7 +31,7 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
-  const variants = product.product_variants ?? [];
+  const variants = (product.product_variants ?? []).filter((variant) => variant.stock_quantity > 0);
   const cheapest = [...variants].sort((a, b) => a.retail_price_cents - b.retail_price_cents)[0];
   const images = [...(product.product_images ?? [])].sort(
     (a, b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order,
@@ -39,27 +40,55 @@ export function ProductCard({ product }: ProductCardProps) {
   const imageUrl = getProductImageUrl(image?.storage_path);
 
   return (
-    <Link href={`/spices/${product.slug}`} className="glass-soft group rounded-[2rem] p-5 transition hover:-translate-y-1">
-      <div className="mb-6 aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-white/10 bg-[radial-gradient(circle_at_50%_35%,rgba(255,186,73,.12),transparent_40%),rgba(0,0,0,.2)]">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={image?.alt_text || product.name}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-          />
-        ) : null}
-      </div>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="display-font text-xl font-semibold">{product.name}</h2>
-          <p className="mt-2 line-clamp-2 text-sm leading-6 text-stone-500">{product.short_description || "Spice catalogue item"}</p>
+    <article className="group relative text-center">
+      <Link href={`/spices/${product.slug}`} className="block">
+        <div className="jar-stage">
+          <div className="jar-shell">
+            <div className="jar-lid" />
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt={image?.alt_text || product.name}
+                className="jar-image"
+              />
+            ) : (
+              <div className="absolute inset-[10%_0_0] bg-[linear-gradient(180deg,#d5b26f,#8e6a34)] opacity-80" />
+            )}
+            <div className="jar-label">
+              <span className="script-accent block text-[1.65rem] leading-none text-black">
+                {product.name}
+              </span>
+              <span className="mt-1 block text-[10px] font-semibold uppercase tracking-[.18em] text-neutral-500">
+                The Glided Pantry
+              </span>
+            </div>
+            <div className="jar-shine" />
+          </div>
         </div>
-        <span className="shrink-0 text-xs text-stone-600">Heat {product.heat_level}/5</span>
-      </div>
-      <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
-        <span className="text-sm text-stone-500">{variants.length} size{variants.length === 1 ? "" : "s"}</span>
-        <span className="font-semibold text-orange-100">{cheapest ? `From R${(cheapest.retail_price_cents / 100).toFixed(2)}` : "No active price"}</span>
-      </div>
-    </Link>
+
+        <div className="-mt-1">
+          <p className="text-xs uppercase tracking-[.18em] text-neutral-400">
+            Heat {product.heat_level}/5
+          </p>
+          <h2 className="display-font mt-2 text-2xl font-semibold">{product.name}</h2>
+          <p className="mt-2 text-base font-semibold">
+            {cheapest ? `R${(cheapest.retail_price_cents / 100).toFixed(2)}` : "Out of stock"}
+          </p>
+        </div>
+      </Link>
+
+      {cheapest ? (
+        <form action={addToCart} className="mt-4 flex justify-center">
+          <input type="hidden" name="variantId" value={cheapest.id} />
+          <input type="hidden" name="quantity" value="1" />
+          <button
+            type="submit"
+            className="btn-secondary !min-h-10 !px-5 !py-2 text-sm"
+          >
+            + Quick add
+          </button>
+        </form>
+      ) : null}
+    </article>
   );
 }
