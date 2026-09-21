@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getProductImageUrl } from "@/lib/products/image-url";
 
 type Variant = {
   id: string;
@@ -6,6 +7,14 @@ type Variant = {
   weight_unit: string;
   retail_price_cents: number;
   stock_quantity: number;
+};
+
+type ProductImage = {
+  id: string;
+  storage_path: string;
+  alt_text: string | null;
+  is_primary: boolean;
+  sort_order: number;
 };
 
 type ProductCardProps = {
@@ -16,16 +25,30 @@ type ProductCardProps = {
     short_description: string | null;
     heat_level: number;
     product_variants: Variant[] | null;
+    product_images: ProductImage[] | null;
   };
 };
 
 export function ProductCard({ product }: ProductCardProps) {
   const variants = product.product_variants ?? [];
   const cheapest = [...variants].sort((a, b) => a.retail_price_cents - b.retail_price_cents)[0];
+  const images = [...(product.product_images ?? [])].sort(
+    (a, b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order,
+  );
+  const image = images[0];
+  const imageUrl = getProductImageUrl(image?.storage_path);
 
   return (
     <Link href={`/spices/${product.slug}`} className="glass-soft group rounded-[2rem] p-5 transition hover:-translate-y-1">
-      <div className="mb-6 aspect-[4/3] rounded-[1.5rem] border border-white/10 bg-[radial-gradient(circle_at_50%_35%,rgba(255,186,73,.12),transparent_40%),rgba(0,0,0,.2)]" />
+      <div className="mb-6 aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-white/10 bg-[radial-gradient(circle_at_50%_35%,rgba(255,186,73,.12),transparent_40%),rgba(0,0,0,.2)]">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={image?.alt_text || product.name}
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          />
+        ) : null}
+      </div>
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="display-font text-xl font-semibold">{product.name}</h2>
