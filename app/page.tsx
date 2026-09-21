@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { ProductCard } from "@/components/products/product-card";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { createClient } from "@/lib/supabase/server";
 
 const discovery = [
   ["Cuisine", "Indian, Moroccan, Thai, Mexican and more", "01"],
@@ -15,7 +17,19 @@ const pantry = [
   { name: "Coriander", tone: "from-[#9c8d51] to-[#4c4724]" },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient();
+  const { data: latestProducts } = await supabase
+    .from("products")
+    .select(`
+      id,name,slug,short_description,heat_level,
+      product_variants(id,weight_value,weight_unit,retail_price_cents,stock_quantity),
+      product_images(id,storage_path,alt_text,is_primary,sort_order)
+    `)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(6);
+
   return (
     <main>
       <section className="relative min-h-[100svh] overflow-hidden pt-36">
@@ -162,6 +176,24 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {latestProducts?.length ? (
+        <section className="section-wrap py-24 sm:py-32">
+          <div className="flex flex-wrap items-end justify-between gap-5">
+            <SectionHeading
+              eyebrow="From the live catalogue"
+              title="Recently added to the pantry."
+              body="These cards now come directly from the active Supabase catalogue, including live variants, prices and product images."
+            />
+            <Link href="/shop" className="btn-secondary">View all spices</Link>
+          </div>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {latestProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="section-wrap py-24 sm:py-32">
         <div className="grid gap-5 lg:grid-cols-2">
