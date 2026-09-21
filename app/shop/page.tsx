@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { ProductCard } from "@/components/products/product-card";
+import { FloatingFilterBar } from "@/components/shop/floating-filter-bar";
 import { createClient } from "@/lib/supabase/server";
 
 type Props = {
@@ -142,37 +142,24 @@ export default async function ShopPage({ searchParams }: Props) {
   return (
     <main className="pt-32">
       <section className="section-wrap py-20">
-        <span className="eyebrow">Catalogue</span>
-        <h1 className="display-font mt-5 text-5xl font-semibold tracking-[-.05em] sm:text-6xl">
-          Shop spices
-        </h1>
+        <div className="text-center">
+          <span className="eyebrow">The pantry collection</span>
+          <h1 className="display-font mt-5 text-6xl font-semibold tracking-[-.045em] sm:text-7xl">
+            Find your <span className="script-accent font-normal">flavour.</span>
+          </h1>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-neutral-500">
+            Search by spice, cuisine, dish, flavour, cooking method or heat — then add straight from the shelf.
+          </p>
+        </div>
 
-        <form className="glass-soft mt-8 grid gap-3 rounded-[2rem] p-4 sm:grid-cols-2 lg:grid-cols-4">
-          <input
-            name="q"
-            defaultValue={filters.q}
-            placeholder="Search cumin, dhana, haldi..."
-            className="field sm:col-span-2"
-          />
-
-          <FilterSelect name="type" value={filters.type} label="All product types" options={types ?? []} />
-          <FilterSelect name="cuisine" value={filters.cuisine} label="All cuisines" options={cuisines ?? []} />
-          <FilterSelect name="food" value={filters.food} label="All foods" options={foodTypes ?? []} />
-          <FilterSelect name="flavour" value={filters.flavour} label="All flavours" options={flavours ?? []} />
-          <FilterSelect name="method" value={filters.method} label="All cooking methods" options={cookingMethods ?? []} />
-
-          <select name="heat" defaultValue={filters.heat ?? ""} className="field">
-            <option value="">Any heat level</option>
-            {[0,1,2,3,4,5].map((level) => (
-              <option key={level} value={level}>Heat {level}/5</option>
-            ))}
-          </select>
-
-          <div className="flex gap-2">
-            <button className="btn-primary flex-1" type="submit">Apply filters</button>
-            {hasFilters ? <Link className="btn-secondary !px-4" href="/shop">Clear</Link> : null}
-          </div>
-        </form>
+        <FloatingFilterBar
+          values={filters}
+          types={types ?? []}
+          cuisines={cuisines ?? []}
+          foodTypes={foodTypes ?? []}
+          flavours={flavours ?? []}
+          cookingMethods={cookingMethods ?? []}
+        />
 
         <div className="mt-6 flex items-center justify-between gap-4 text-sm text-stone-500">
           <span>{products.length} product{products.length === 1 ? "" : "s"}</span>
@@ -185,7 +172,7 @@ export default async function ShopPage({ searchParams }: Props) {
           </p>
         ) : null}
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid gap-x-5 gap-y-14 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.map((product) => <ProductCard key={product.id} product={product} />)}
         </div>
 
@@ -196,26 +183,5 @@ export default async function ShopPage({ searchParams }: Props) {
         ) : null}
       </section>
     </main>
-  );
-}
-
-function FilterSelect({
-  name,
-  value,
-  label,
-  options,
-}: {
-  name: string;
-  value?: string;
-  label: string;
-  options: Array<{ id: string; name: string }>;
-}) {
-  return (
-    <select name={name} defaultValue={value ?? ""} className="field">
-      <option value="">{label}</option>
-      {options.map((option) => (
-        <option key={option.id} value={option.id}>{option.name}</option>
-      ))}
-    </select>
   );
 }
