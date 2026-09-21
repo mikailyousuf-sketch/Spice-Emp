@@ -16,6 +16,10 @@ Phase 1 foundation is in progress and now includes:
 - Protected admin dashboard
 - Admin product creation
 - Database-backed shop/product pages
+- Cuisine, food, flavour, method and heat filters
+- Alias-aware search
+- Product images via Supabase Storage
+- Editable variants, inventory and low-stock thresholds
 - GitHub CI type/build checks
 
 ## Local setup
@@ -35,8 +39,12 @@ Run the SQL files in order using the Supabase SQL editor, or link the Supabase C
 1. `supabase/migrations/0001_core.sql`
 2. `supabase/migrations/0002_security_and_catalogue.sql`
 3. `supabase/migrations/0003_seed_taxonomy.sql`
+4. `supabase/migrations/0004_product_media.sql`
+5. `supabase/migrations/0005_search_indexes.sql`
 
 Do not skip migration 0002. It creates profile/user-role automation and the admin write policies.
+Migration 0004 creates the public product-image Storage bucket and admin-only write policies.
+Migration 0005 adds search/filter indexes for names, aliases and discovery relationships.
 
 ## Create the first admin
 
