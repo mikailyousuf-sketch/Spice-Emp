@@ -18,6 +18,7 @@ const schema = z.object({
   weightUnit: z.enum(["g", "kg"]),
   retailPriceRand: z.coerce.number().nonnegative(),
   stockQuantity: z.coerce.number().nonnegative(),
+  lowStockThreshold: z.coerce.number().nonnegative(),
 });
 
 export async function createProduct(formData: FormData) {
@@ -35,6 +36,7 @@ export async function createProduct(formData: FormData) {
     weightUnit: formData.get("weightUnit"),
     retailPriceRand: formData.get("retailPriceRand"),
     stockQuantity: formData.get("stockQuantity"),
+    lowStockThreshold: formData.get("lowStockThreshold"),
   });
 
   if (!parsed.success) {
@@ -66,6 +68,7 @@ export async function createProduct(formData: FormData) {
     weight_unit: parsed.data.weightUnit,
     retail_price_cents: Math.round(parsed.data.retailPriceRand * 100),
     stock_quantity: parsed.data.stockQuantity,
+    low_stock_threshold: parsed.data.lowStockThreshold,
   });
 
   if (variantError) {
