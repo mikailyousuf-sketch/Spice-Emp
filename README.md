@@ -35,8 +35,12 @@ The current commerce layer includes:
 - Guest order confirmation via separate order access token
 - Signed-in customer order history and detail pages
 - Admin order list, detail and manual status management
-
-Payment-provider integration is the next commerce step.
+- Payment-provider abstraction
+- Yoco checkout adapter and server-side verification
+- Paystack checkout adapter, callback verification and webhook signature verification
+- Payment attempt records linked to orders
+- Payment success/failure/pending routes
+- Automatic order/payment-state updates after verification
 
 ## Local setup
 
@@ -46,8 +50,15 @@ Payment-provider integration is the next commerce step.
 4. Add:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-5. Add `SUPABASE_SERVICE_ROLE_KEY` to `.env.local` for secure server-side guest carts and checkout. Never expose this key to browser code.
-6. Run `npm run dev`.
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `NEXT_PUBLIC_SITE_URL`
+5. For payments, add one or both test secret keys:
+   - `YOCO_SECRET_KEY`
+   - `PAYSTACK_SECRET_KEY`
+6. `PAYMENT_PROVIDER=yoco` is the default provider setting, but customers can currently choose Yoco or Paystack at checkout.
+7. Run `npm run dev`.
+
+Never expose payment secret keys or the Supabase service-role key to client-side code.
 
 ## Apply Supabase migrations
 
@@ -61,10 +72,40 @@ Run the SQL files in order using the Supabase SQL editor, or link the Supabase C
 6. `supabase/migrations/0006_commerce_core.sql`
 7. `supabase/migrations/0007_order_access_tokens.sql`
 8. `supabase/migrations/0008_atomic_stock.sql`
+9. `supabase/migrations/0009_payments.sql`
 
 Do not skip migration 0002. It creates profile/user-role automation and the admin write policies.
 Migration 0004 creates the public product-image Storage bucket and admin-only write policies.
 Migration 0005 adds search/filter indexes for names, aliases and discovery relationships.
+Migration 0009 adds payment-attempt tracking for Yoco and Paystack.
+
+## Payment testing
+
+### Yoco
+
+Add the Yoco test secret key to `.env.local`:
+
+```env
+YOCO_SECRET_KEY=
+```
+
+Use Yoco test credentials/cards from the Yoco Portal when validating the hosted checkout flow.
+
+### Paystack
+
+Add the Paystack test secret key:
+
+```env
+PAYSTACK_SECRET_KEY=
+```
+
+Configure the Paystack webhook URL to:
+
+```text
+https://YOUR_PUBLIC_DOMAIN/api/payments/paystack/webhook
+```
+
+For local webhook testing, use a publicly reachable development URL rather than `localhost`.
 
 ## Create the first admin
 
@@ -86,10 +127,13 @@ Admin users can currently:
 
 - view product/variant totals
 - list products
-- create a product
-- create its first sellable variant with SKU, weight, price and stock
+- create and edit products
+- manage multiple variants
+- manage stock and low-stock thresholds
+- manage aliases, taxonomy and product media
+- manage orders and statuses
 
-The public `/shop` page reads active catalogue data from Supabase and supports basic name/type filtering.
+The public `/shop` page reads active catalogue data from Supabase and supports multidimensional filtering and alias-aware search.
 
 ## Security
 
