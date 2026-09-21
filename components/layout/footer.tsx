@@ -2,19 +2,19 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t border-black/10 bg-white/30">
-      <div className="section-wrap grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr]">
+    <footer className="border-t border-white/10 bg-[#0d0c0b] text-white">
+      <div className="section-wrap grid gap-10 py-12 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
-          <p className="script-accent text-4xl">The Glided Pantry</p>
-          <p className="mt-4 max-w-md text-sm leading-6 text-neutral-500">
-            A modern South African pantry for premium spices, global flavour and smarter culinary discovery.
+          <img src="/branding/glided-wordmark.webp" alt="The Glided Pantry" className="w-64" />
+          <p className="mt-5 max-w-md text-sm leading-6 text-white/45">
+            Premium spices, global flavour, and a pantry built around the way you cook.
           </p>
         </div>
 
         <div>
-          <p className="mb-4 text-sm font-semibold text-black">Explore</p>
-          <div className="grid gap-2 text-sm text-neutral-500">
-            <Link href="/shop">Shop the pantry</Link>
+          <p className="micro-label">Explore</p>
+          <div className="mt-4 grid gap-2 text-sm text-white/48">
+            <Link href="/shop">Shop</Link>
             <Link href="/recipes">Recipes</Link>
             <Link href="/assistant">Pantry AI</Link>
             <Link href="/business">Wholesale</Link>
@@ -22,15 +22,16 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="mb-4 text-sm font-semibold text-black">Company</p>
-          <div className="grid gap-2 text-sm text-neutral-500">
-            <Link href="/about">About</Link>
+          <p className="micro-label">Company</p>
+          <div className="mt-4 grid gap-2 text-sm text-white/48">
+            <Link href="/about">Our story</Link>
             <Link href="/contact">Contact</Link>
           </div>
         </div>
       </div>
-      <div className="section-wrap border-t border-black/10 py-5 text-xs text-neutral-400">
-        © {new Date().getFullYear()} The Glided Pantry. South Africa.
+      <div className="section-wrap flex flex-wrap items-center justify-between gap-3 border-t border-white/10 py-5 text-[10px] uppercase tracking-[.16em] text-white/30">
+        <span>© {new Date().getFullYear()} The Glided Pantry</span>
+        <span>A more flavourful world</span>
       </div>
     </footer>
   );
