@@ -117,6 +117,49 @@ export async function addVariant(formData: FormData) {
   redirect(productAdminUrl(parsed.data.productId));
 }
 
+export async function updateVariant(formData: FormData) {
+  await requireAdmin();
+
+  const parsed = variantSchema.extend({
+    variantId: z.string().uuid(),
+  }).safeParse({
+    productId: formData.get("productId"),
+    variantId: formData.get("variantId"),
+    sku: formData.get("sku"),
+    weightValue: formData.get("weightValue"),
+    weightUnit: formData.get("weightUnit"),
+    retailPriceRand: formData.get("retailPriceRand"),
+    stockQuantity: formData.get("stockQuantity"),
+  });
+
+  if (!parsed.success) {
+    redirect(productAdminUrl(String(formData.get("productId")), "Please check the variant details."));
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("product_variants")
+    .update({
+      sku: parsed.data.sku,
+      weight_value: parsed.data.weightValue,
+      weight_unit: parsed.data.weightUnit,
+      retail_price_cents: Math.round(parsed.data.retailPriceRand * 100),
+      stock_quantity: parsed.data.stockQuantity,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", parsed.data.variantId)
+    .eq("product_id", parsed.data.productId);
+
+  if (error) {
+    redirect(productAdminUrl(parsed.data.productId, error.message));
+  }
+
+  revalidatePath("/shop");
+  revalidatePath("/admin/inventory");
+  revalidatePath("/admin/products");
+  redirect(productAdminUrl(parsed.data.productId));
+}
+
 export async function deleteVariant(formData: FormData) {
   await requireAdmin();
 
