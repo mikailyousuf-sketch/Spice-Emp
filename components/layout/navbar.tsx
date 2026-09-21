@@ -33,10 +33,10 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Link href="/shop" className="btn-secondary hidden !min-h-10 !px-4 !py-2 text-sm sm:inline-flex">
-            Browse
+          <Link href="/cart" className="btn-secondary !min-h-10 !px-4 !py-2 text-sm">
+            Cart
           </Link>
-          <Link href="/assistant" className="btn-primary !min-h-10 !px-4 !py-2 text-sm">
+          <Link href="/assistant" className="btn-primary hidden !min-h-10 !px-4 !py-2 text-sm sm:inline-flex">
             Ask Spice AI
           </Link>
         </div>
