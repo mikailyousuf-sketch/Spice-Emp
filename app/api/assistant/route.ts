@@ -48,8 +48,11 @@ function namesFromRelation(value: unknown): string[] {
 }
 
 function cheapestInStock(variants: Array<{
+  id: string;
   retail_price_cents: number;
   stock_quantity: number;
+  weight_value: number;
+  weight_unit: string;
 }> | null | undefined) {
   return [...(variants ?? [])]
     .filter((variant) => Number(variant.stock_quantity) > 0)
@@ -80,7 +83,7 @@ export async function POST(request: Request) {
     .from("products")
     .select(`
       id,name,slug,short_description,description,heat_level,jar_render_path,
-      product_variants(id,retail_price_cents,stock_quantity),
+      product_variants(id,retail_price_cents,stock_quantity,weight_value,weight_unit),
       product_images(id,storage_path,alt_text,is_primary,sort_order),
       product_aliases(alias),
       product_cuisines(cuisines(name)),
@@ -165,6 +168,8 @@ export async function POST(request: Request) {
       imageUrl,
       imageAlt: image?.alt_text || product.name,
       priceCents: cheapest?.retail_price_cents ?? null,
+      variantId: cheapest?.id ?? null,
+      variantLabel: cheapest ? `${cheapest.weight_value}${cheapest.weight_unit}` : null,
       inStock,
       matched: Array.from(matched).slice(0, 4),
       score,
