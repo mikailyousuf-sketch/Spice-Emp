@@ -66,6 +66,7 @@ export default async function ShippingAdminPage({ searchParams }: Props) {
               </p>
               <p className="mt-2 text-xs leading-5 text-stone-500">
                 Door delivery and Courier Guy locker delivery use this same connection.
+                The account code is your TCG Account Number shown under the Account menu.
               </p>
             </div>
             <span className={process.env.COURIER_GUY_API_KEY ? "text-emerald-300" : "text-amber-300"}>
