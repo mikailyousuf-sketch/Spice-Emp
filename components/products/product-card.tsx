@@ -40,29 +40,22 @@ export function ProductCard({ product }: ProductCardProps) {
   const image = images[0];
   const imageUrl = getProductImageUrl(image?.storage_path);
   const jarRenderUrl = getProductImageUrl(product.jar_render_path ?? null);
+  const displayUrl = imageUrl || jarRenderUrl;
 
   return (
     <article className="shelf-product group">
       <Link href={`/spices/${product.slug}`} className="block">
-        <div className={`shelf-product-image ${jarRenderUrl ? "has-render" : ""}`}>
-          {jarRenderUrl ? (
+        <div className="shelf-product-image has-real-photo">
+          {displayUrl ? (
             <img
-              src={jarRenderUrl}
-              alt={product.name}
-              className="premium-jar-render"
+              src={displayUrl}
+              alt={image?.alt_text || product.name}
+              className="product-card-photo"
             />
           ) : (
-            <div className="fallback-product-jar">
-              <div className="jar-lid" />
-              {imageUrl ? (
-                <img src={imageUrl} alt={image?.alt_text || product.name} className="jar-image" />
-              ) : (
-                <div className="jar-fallback" />
-              )}
-              <div className="jar-label">
-                <span className="jar-label-brand">The Glided Pantry</span>
-                <span className="jar-label-name">{product.name}</span>
-              </div>
+            <div className="product-card-empty" aria-label={`No image uploaded for ${product.name}`}>
+              <img src="/branding/glided-monogram.svg" alt="" />
+              <span>Image not uploaded</span>
             </div>
           )}
         </div>
