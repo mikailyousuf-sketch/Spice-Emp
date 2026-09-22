@@ -15,7 +15,7 @@ export default async function HomePage() {
   const { data: latestProducts } = await supabase
     .from("products")
     .select(`
-      id,name,slug,short_description,heat_level,
+      id,name,slug,short_description,heat_level,jar_render_path,hero_render_path,
       product_variants(id,weight_value,weight_unit,retail_price_cents,stock_quantity),
       product_images(id,storage_path,alt_text,is_primary,sort_order)
     `)
@@ -29,7 +29,10 @@ export default async function HomePage() {
         (a,b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order,
       )[0]
     : null;
-  const heroImageUrl = getProductImageUrl(heroImage?.storage_path);
+  const heroImageUrl =
+    getProductImageUrl(heroProduct?.hero_render_path ?? null) ||
+    getProductImageUrl(heroProduct?.jar_render_path ?? null) ||
+    getProductImageUrl(heroImage?.storage_path);
 
   return (
     <main>
