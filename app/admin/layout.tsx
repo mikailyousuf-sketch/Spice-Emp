@@ -5,7 +5,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   await requireAdmin();
 
   return (
-    <main className="pt-32">
+    <main className="admin-shell pt-32">
       <div className="section-wrap grid gap-8 pb-24 lg:grid-cols-[220px_1fr]">
         <aside className="glass-soft h-fit rounded-[2rem] p-5">
           <p className="display-font px-3 pb-4 text-lg font-semibold">Spice Emp Admin</p>
