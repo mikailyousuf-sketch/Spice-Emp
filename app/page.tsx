@@ -1,20 +1,33 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/products/product-card";
-import { comingSoonSpices } from "@/lib/coming-soon";
+import { getProductImageUrl } from "@/lib/products/image-url";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const { data: latestProducts } = await supabase
-    .from("products")
-    .select(`
-      id,name,slug,short_description,heat_level,jar_render_path,hero_render_path,
-      product_variants(id,weight_value,weight_unit,retail_price_cents,stock_quantity),
-      product_images(id,storage_path,alt_text,is_primary,sort_order)
-    `)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false })
-    .limit(4);
+  const productSelect = `
+    id,name,slug,short_description,heat_level,jar_render_path,hero_render_path,
+    product_variants(id,weight_value,weight_unit,retail_price_cents,stock_quantity),
+    product_images(id,storage_path,alt_text,is_primary,sort_order)
+  `;
+
+  const [{ data: featuredProducts }, { data: latestProducts }] = await Promise.all([
+    supabase
+      .from("products")
+      .select(productSelect)
+      .eq("is_active", true)
+      .eq("is_featured", true)
+      .order("updated_at", { ascending: false })
+      .limit(4),
+    supabase
+      .from("products")
+      .select(productSelect)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(4),
+  ]);
+
+  const featuredSlots = Array.from({ length: 4 }, (_, index) => featuredProducts?.[index] ?? null);
 
   return (
     <main className="pantry-home">
@@ -50,21 +63,53 @@ export default async function HomePage() {
 
           <div className="pantry-display">
             <div className="pantry-jar-grid">
-              {comingSoonSpices.map((spice) => (
-                <article className="pantry-display-item" key={spice.name}>
-                  <div className="pantry-jar-zone">
-                    <img
-                      src={spice.image}
-                      alt={spice.name}
-                      className="pantry-display-jar"
-                    />
-                  </div>
-                  <div className="pantry-product-copy">
-                    <h2>{spice.name}</h2>
-                    <span>Coming soon</span>
-                  </div>
-                </article>
-              ))}
+              {featuredSlots.map((product, index) => {
+                if (!product) {
+                  return (
+                    <div className="pantry-display-item pantry-featured-empty" key={`featured-empty-${index}`}>
+                      <div className="pantry-jar-zone">
+                        <div className="pantry-empty-visual" aria-hidden="true">
+                          <img src="/branding/glided-monogram.svg" alt="" />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                const images = [...(product.product_images ?? [])].sort(
+                  (a, b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order,
+                );
+                const image = images[0];
+                const imageUrl = getProductImageUrl(image?.storage_path)
+                  || getProductImageUrl(product.jar_render_path ?? null);
+                const cheapest = [...(product.product_variants ?? [])]
+                  .filter((variant) => variant.stock_quantity > 0)
+                  .sort((a, b) => a.retail_price_cents - b.retail_price_cents)[0];
+
+                return (
+                  <article className="pantry-display-item" key={product.id}>
+                    <Link href={`/spices/${product.slug}`} className="block">
+                      <div className="pantry-jar-zone">
+                        {imageUrl ? (
+                          <img
+                            src={imageUrl}
+                            alt={image?.alt_text || product.name}
+                            className="pantry-display-jar pantry-featured-photo"
+                          />
+                        ) : (
+                          <div className="pantry-empty-visual">
+                            <img src="/branding/glided-monogram.svg" alt="" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="pantry-product-copy">
+                        <h2>{product.name}</h2>
+                        <span>{cheapest ? `From R${(cheapest.retail_price_cents / 100).toFixed(2)}` : "View product"}</span>
+                      </div>
+                    </Link>
+                  </article>
+                );
+              })}
             </div>
 
             <div className="pantry-glass-shelf" aria-hidden="true">
