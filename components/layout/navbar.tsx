@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useState } from "react";
 
 const navLinks = [
-  { href: "/shop", label: "Shop" },
-  { href: "/recipes", label: "Recipes" },
-  { href: "/assistant", label: "Pantry AI" },
-  { href: "/business", label: "Wholesale" },
+  { href: "/", label: "Home" },
   { href: "/about", label: "Our story" },
+  { href: "/shop", label: "Spices" },
+  { href: "/recipes", label: "Journal" },
+  { href: "/contact", label: "Contact" },
 ];
 
 function IconSearch() {
@@ -30,15 +30,22 @@ export function Navbar() {
 
   return (
     <>
-      <header className="pointer-events-none fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:px-8 sm:pt-6">
-        <div className="mx-auto flex max-w-[1450px] items-start justify-between">
-          <Link href="/" className="pointer-events-auto brand-float brand-float-logo" aria-label="The Glided Pantry home">
-            <img src="/branding/glided-wordmark.webp" alt="The Glided Pantry" className="brand-wordmark" />
+      <header className="pantry-navbar-shell">
+        <div className="pantry-navbar">
+          <Link href="/" className="pantry-wordmark" aria-label="The Glided Pantry home">
+            The Glided Pantry
           </Link>
-          <div className="pointer-events-auto flex items-center gap-2">
-            <Link href="/shop#pantry-search" className="float-control" aria-label="Search pantry"><IconSearch /></Link>
-            <Link href="/cart" className="float-control" aria-label="Cart"><IconCart /></Link>
-            <button type="button" className="float-control" aria-label="Open menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(v => !v)}>
+
+          <nav className="pantry-nav-links" aria-label="Primary navigation">
+            {navLinks.map((link) => (
+              <Link key={link.href} href={link.href}>{link.label}</Link>
+            ))}
+          </nav>
+
+          <div className="pantry-nav-actions">
+            <Link href="/shop#pantry-search" className="pantry-nav-icon" aria-label="Search pantry"><IconSearch /></Link>
+            <Link href="/cart" className="pantry-nav-icon" aria-label="Cart"><IconCart /></Link>
+            <button type="button" className="pantry-nav-icon" aria-label="Open menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(v => !v)}>
               <IconMenu open={menuOpen} />
             </button>
           </div>
@@ -48,7 +55,7 @@ export function Navbar() {
       <div className={`menu-scrim ${menuOpen ? "is-open" : ""}`} onClick={() => setMenuOpen(false)} />
       <aside className={`menu-panel ${menuOpen ? "is-open" : ""}`} aria-hidden={!menuOpen}>
         <div className="flex items-center justify-between">
-          <img src="/branding/glided-wordmark.webp" alt="The Glided Pantry" className="w-56" />
+          <span className="pantry-wordmark pantry-wordmark-menu">The Glided Pantry</span>
           <button type="button" className="float-control" onClick={() => setMenuOpen(false)} aria-label="Close menu"><IconMenu open /></button>
         </div>
         <nav className="mt-16 grid gap-3">
