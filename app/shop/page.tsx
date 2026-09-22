@@ -91,15 +91,9 @@ export default async function ShopPage({ searchParams }: Props) {
   return (
     <main className="dark-stone relative min-h-screen pb-28 pt-32">
       <section className="section-wrap relative z-10">
-        <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
-          <div>
-            <p className="micro-label">The pantry collection</p>
-            <h1 className="catalogue-heading mt-4">Choose by flavour.</h1>
-            <p className="display-font mt-4 text-2xl italic text-white/58">Extraordinary spices for everyday rituals.</p>
-          </div>
-          <p className="max-w-md justify-self-end text-sm leading-7 text-white/48">
-            Search spices, cuisines, dishes, flavour profiles and heat — or browse the full shelf.
-          </p>
+        <div className="text-center">
+          <p className="micro-label">The pantry</p>
+          <h1 className="catalogue-heading mx-auto mt-4 max-w-4xl">Find the jar you need.</h1>
         </div>
 
         <div id="pantry-search">
@@ -113,9 +107,9 @@ export default async function ShopPage({ searchParams }: Props) {
           />
         </div>
 
-        <div className="mt-9 flex items-center justify-between border-b border-white/10 pb-4">
-          <span className="micro-label">{products.length} exceptional spice{products.length === 1 ? "" : "s"}</span>
-          <span className="text-[10px] uppercase tracking-[.18em] text-white/35">{searchTerm ? `“${searchTerm}”` : "Live catalogue"}</span>
+        <div className="mt-10 flex items-center justify-between border-b border-white/10 pb-4">
+          <span className="micro-label">{products.length} jar{products.length === 1 ? "" : "s"}</span>
+          <span className="text-[10px] uppercase tracking-[.18em] text-white/30">{searchTerm ? `“${searchTerm}”` : "Browse all"}</span>
         </div>
 
         {errorMessage ? (
@@ -124,7 +118,7 @@ export default async function ShopPage({ searchParams }: Props) {
           </p>
         ) : null}
 
-        <div className="mt-8 grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-5 grid gap-x-4 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.map(product => <ProductCard key={product.id} product={product} />)}
         </div>
 
