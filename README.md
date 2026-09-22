@@ -80,6 +80,7 @@ Run the SQL files in order using the Supabase SQL editor, or link the Supabase C
 13. `supabase/migrations/0013_product_upload_limits.sql`
 14. `supabase/migrations/0014_assistant_queries.sql`
 15. `supabase/migrations/0015_business_enquiries.sql`
+16. `supabase/migrations/0016_unify_courier_guy_lockers.sql`
 
 Do not skip migration 0002. It creates profile/user-role automation and the admin write policies.
 Migration 0004 creates the public product-image Storage bucket and admin-only write policies.
@@ -91,6 +92,7 @@ Migration 0012 adds dedicated catalogue-jar and featured-hero render paths for p
 Migration 0013 aligns product-image Storage limits with the admin upload flow.
 Migration 0014 stores signed-in pantry-assistant query analytics.
 Migration 0015 adds wholesale/business quote enquiries and approval workflow.
+Migration 0016 normalises legacy locker shipment rows under The Courier Guy provider.
 
 ## Courier Guy / PUDO
 
