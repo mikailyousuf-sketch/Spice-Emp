@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { PudoProvider } from "@/lib/shipping/pudo";
 import { createShipmentForPaidOrder } from "@/lib/shipping/fulfilment";
 
 const shippingSchema = z.object({
@@ -149,21 +148,6 @@ export async function testCourierGuyConnection() {
 
   redirect("/admin/shipping?test=" + encodeURIComponent(message));
 }
-
-export async function testPudoConnection() {
-  await requireAdmin();
-
-  let message = "";
-  try {
-    const lockers = await new PudoProvider().getLockers();
-    message = "PUDO connection successful. " + lockers.length + " lockers returned.";
-  } catch (error) {
-    message = error instanceof Error ? error.message : "PUDO connection test failed.";
-  }
-
-  redirect("/admin/shipping?test=" + encodeURIComponent(message));
-}
-
 
 export async function retryPaidOrderShipment(formData: FormData) {
   await requireAdmin();
