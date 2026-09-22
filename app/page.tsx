@@ -102,13 +102,13 @@ export default async function HomePage() {
           <div className="section-wrap relative z-10">
             <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
               <div>
-                <p className="micro-label">Our signature collection</p>
-                <h2 className="catalogue-heading mt-4 max-w-3xl">Extraordinary spices for everyday rituals.</h2>
+                <p className="micro-label">The shelf</p>
+                <h2 className="catalogue-heading mt-4 max-w-3xl">Start with the jar.</h2>
               </div>
               <Link href="/shop" className="btn-secondary w-fit">View all →</Link>
             </div>
 
-            <div className="mt-12 grid gap-x-5 gap-y-14 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="mt-8 grid gap-x-4 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {latestProducts.slice(0,4).map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
