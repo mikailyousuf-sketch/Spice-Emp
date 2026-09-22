@@ -189,7 +189,7 @@ export default async function EditProductPage({ params, searchParams }: Props) {
         <section className="glass-soft rounded-[2rem] p-6 sm:p-8">
           <p className="display-font text-2xl font-semibold">Product images</p>
           <p className="mt-1 text-sm text-stone-500">
-            JPG, PNG, WebP or AVIF, maximum 5MB.
+            JPG, PNG, WebP or AVIF, maximum 8MB.
           </p>
 
           <div className="mt-5 grid grid-cols-2 gap-3">
