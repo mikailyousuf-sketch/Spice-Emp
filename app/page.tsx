@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { ComingSoonCard } from "@/components/products/coming-soon-card";
 import { ProductCard } from "@/components/products/product-card";
+import { comingSoonSpices } from "@/lib/coming-soon";
 import { getProductImageUrl } from "@/lib/products/image-url";
 import { createClient } from "@/lib/supabase/server";
 
@@ -96,6 +98,26 @@ export default async function HomePage() {
           </Link>
         ))}
       </div>
+
+      <section className="dark-stone relative py-24 sm:py-32">
+        <div className="section-wrap relative z-10">
+          <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
+            <div>
+              <p className="micro-label">First jars</p>
+              <h2 className="catalogue-heading mt-4 max-w-3xl">Coming to the pantry.</h2>
+            </div>
+            <span className="text-[10px] font-semibold uppercase tracking-[.2em] text-white/35">
+              Preview collection
+            </span>
+          </div>
+
+          <div className="mt-8 grid gap-x-4 gap-y-16 sm:grid-cols-2 lg:grid-cols-4">
+            {comingSoonSpices.map((spice) => (
+              <ComingSoonCard key={spice.name} spice={spice} />
+            ))}
+          </div>
+        </div>
+      </section>
 
       {latestProducts?.length ? (
         <section className="dark-stone relative py-24 sm:py-32">
