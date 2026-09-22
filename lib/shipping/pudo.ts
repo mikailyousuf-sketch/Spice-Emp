@@ -1,5 +1,7 @@
 import "server-only";
 import type {
+  CreateShipmentInput,
+  CreatedShipment,
   QuoteInput,
   ShippingLocker,
   ShippingProvider,
@@ -51,6 +53,96 @@ export class PudoProvider implements ShippingProvider {
         openingHours: locker.openinghours ?? null,
       }];
     });
+  }
+
+
+  async createShipment(input: CreateShipmentInput): Promise<CreatedShipment> {
+    if (!input.deliveryLockerCode) {
+      throw new Error("A PUDO delivery locker is required.");
+    }
+
+    const body = {
+      collection_address: {
+        type: "business",
+        company: input.collectionAddress.company ?? "",
+        street_address: input.collectionAddress.streetAddress,
+        local_area: input.collectionAddress.localArea ?? input.collectionAddress.suburb ?? "",
+        suburb: input.collectionAddress.suburb ?? "",
+        city: input.collectionAddress.city,
+        code: input.collectionAddress.postalCode,
+        zone: input.collectionAddress.province,
+        country: input.collectionAddress.country ?? "South Africa",
+        lat: input.collectionAddress.latitude ?? undefined,
+        lng: input.collectionAddress.longitude ?? undefined,
+        entered_address: [
+          input.collectionAddress.streetAddress,
+          input.collectionAddress.suburb,
+          input.collectionAddress.city,
+          input.collectionAddress.postalCode,
+        ].filter(Boolean).join(", "),
+      },
+      collection_contact: {
+        name: input.collectionContact.name,
+        email: input.collectionContact.email,
+        mobile_number: input.collectionContact.phone,
+      },
+      delivery_address: {
+        terminal_id: input.deliveryLockerCode,
+      },
+      delivery_contact: {
+        name: input.deliveryContact.name,
+        email: input.deliveryContact.email,
+        mobile_number: input.deliveryContact.phone,
+      },
+      parcels: input.parcels.map((parcel) => ({
+        parcel_description: parcel.description,
+        submitted_length_cm: parcel.lengthCm,
+        submitted_width_cm: parcel.widthCm,
+        submitted_height_cm: parcel.heightCm,
+        submitted_weight_kg: parcel.weightKg,
+      })),
+      service_level_code: input.serviceLevelCode,
+      customer_reference: input.customerReference,
+    };
+
+    const response = await fetch(this.getBaseUrl() + "/shipments", {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+
+    const raw = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(
+        typeof raw?.message === "string"
+          ? raw.message
+          : typeof raw?.error === "string"
+            ? raw.error
+            : "PUDO shipment creation failed.",
+      );
+    }
+
+    const id = raw?.id ?? raw?.shipment_id;
+    if (id == null) {
+      throw new Error("PUDO did not return a shipment ID.");
+    }
+
+    return {
+      providerShipmentId: String(id),
+      trackingReference:
+        raw?.custom_tracking_reference != null
+          ? String(raw.custom_tracking_reference)
+          : null,
+      labelUrl:
+        typeof raw?.label_url === "string"
+          ? raw.label_url
+          : typeof raw?.label?.url === "string"
+            ? raw.label.url
+            : null,
+      raw,
+    };
   }
 
   async getRates(input: QuoteInput): Promise<ShippingQuote[]> {
