@@ -32,8 +32,8 @@ export function Navbar() {
     <>
       <header className="pantry-navbar-shell">
         <div className="pantry-navbar">
-          <Link href="/" className="pantry-wordmark" aria-label="The Glided Pantry home">
-            The Glided Pantry
+          <Link href="/" className="pantry-brand-link" aria-label="The Glided Pantry home">
+            <img src="/branding/glided-wordmark.svg" alt="The Glided Pantry" className="pantry-brand-image" />
           </Link>
 
           <nav className="pantry-nav-links" aria-label="Primary navigation">
@@ -55,7 +55,7 @@ export function Navbar() {
       <div className={`menu-scrim ${menuOpen ? "is-open" : ""}`} onClick={() => setMenuOpen(false)} />
       <aside className={`menu-panel ${menuOpen ? "is-open" : ""}`} aria-hidden={!menuOpen}>
         <div className="flex items-center justify-between">
-          <span className="pantry-wordmark pantry-wordmark-menu">The Glided Pantry</span>
+          <img src="/branding/glided-wordmark.svg" alt="The Glided Pantry" className="pantry-menu-brand-image" />
           <button type="button" className="float-control" onClick={() => setMenuOpen(false)} aria-label="Close menu"><IconMenu open /></button>
         </div>
         <nav className="mt-16 grid gap-3">
