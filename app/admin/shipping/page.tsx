@@ -24,7 +24,7 @@ export default async function ShippingAdminPage({ searchParams }: Props) {
       .order("name"),
     supabase
       .from("shipments")
-      .select("id,order_id,provider,status,service_level_code,tracking_reference,quoted_rate_cents,created_at,orders(id,order_number,email,payment_status)")
+      .select("id,order_id,provider,status,service_level_code,delivery_locker_code,tracking_reference,quoted_rate_cents,created_at,orders(id,order_number,email,payment_status)")
       .in("status", ["draft", "failed"])
       .order("created_at", { ascending: false })
       .limit(20),
