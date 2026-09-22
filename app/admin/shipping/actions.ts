@@ -115,7 +115,8 @@ export async function deleteShippingMethod(formData: FormData) {
 export async function testCourierGuyConnection() {
   await requireAdmin();
 
-  const token = process.env.COURIER_GUY_API_KEY?.trim();
+  const rawToken = process.env.COURIER_GUY_API_KEY?.trim();
+  const token = rawToken?.replace(/^Bearer\s+/i, "").trim();
   if (!token) redirect("/admin/shipping?test=" + encodeURIComponent("Courier Guy API key is not configured."));
 
   const base = (process.env.COURIER_GUY_API_BASE_URL || "https://api.shiplogic.com").replace(/\/$/, "");
@@ -133,12 +134,28 @@ export async function testCourierGuyConnection() {
     const raw = await response.json().catch(() => null);
 
     if (!response.ok) {
-      message =
+      const providerMessage =
         typeof raw?.message === "string"
           ? raw.message
           : typeof raw?.error === "string"
             ? raw.error
-            : "Courier Guy authentication failed.";
+            : "";
+
+      if (response.status === 401 || response.status === 403) {
+        message =
+          "Courier Guy rejected the API key (" + response.status + "). "
+          + (providerMessage ? providerMessage + " " : "")
+          + "Create a fresh API Key under Courier Guy → Settings → API Key, remove older keys, "
+          + "copy only the key value with no spaces, then update COURIER_GUY_API_KEY and restart/redeploy.";
+      } else if (response.status === 400) {
+        message =
+          "Courier Guy accepted the request but rejected its configuration (400). "
+          + (providerMessage || "Check COURIER_GUY_ACCOUNT_CODE and account setup.");
+      } else {
+        message =
+          "Courier Guy API returned HTTP " + response.status + ". "
+          + (providerMessage || "Please retry or check the account/API configuration.");
+      }
     } else {
       message = "Courier Guy connection successful. API credentials were accepted.";
     }
