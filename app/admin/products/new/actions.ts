@@ -13,6 +13,7 @@ const schema = z.object({
   description: z.string().trim().max(5000).optional(),
   productTypeId: z.string().uuid(),
   heatLevel: z.coerce.number().int().min(0).max(5),
+  isFeatured: z.coerce.boolean(),
   sku: z.string().trim().min(2).max(100),
   weightValue: z.coerce.number().positive(),
   weightUnit: z.enum(["g", "kg"]),
@@ -55,6 +56,7 @@ export async function createProduct(formData: FormData) {
     description: formData.get("description") || undefined,
     productTypeId: formData.get("productTypeId"),
     heatLevel: formData.get("heatLevel"),
+    isFeatured: formData.get("isFeatured") === "on",
     sku: formData.get("sku"),
     weightValue: formData.get("weightValue"),
     weightUnit: formData.get("weightUnit"),
@@ -81,6 +83,7 @@ export async function createProduct(formData: FormData) {
       description: parsed.data.description ?? null,
       product_type_id: parsed.data.productTypeId,
       heat_level: parsed.data.heatLevel,
+      is_featured: parsed.data.isFeatured,
     })
     .select("id")
     .single();
@@ -138,6 +141,7 @@ export async function createProduct(formData: FormData) {
     }
   }
 
+  revalidatePath("/");
   revalidatePath("/shop");
   revalidatePath("/admin/products");
   redirect(`/admin/products/${product.id}?created=1`);
