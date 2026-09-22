@@ -15,7 +15,7 @@ type Props = {
 };
 
 const productSelect = `
-  id,name,slug,short_description,heat_level,product_type_id,
+  id,name,slug,short_description,heat_level,product_type_id,jar_render_path,hero_render_path,
   product_variants(id,weight_value,weight_unit,retail_price_cents,stock_quantity),
   product_images(id,storage_path,alt_text,is_primary,sort_order)
 `;
