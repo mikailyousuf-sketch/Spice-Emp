@@ -8,6 +8,7 @@ export default async function AdminProductsPage() {
   const { data: products, error } = await supabase
     .from("products")
     .select("id,name,slug,is_active,is_featured,heat_level,product_variants(id,sku,weight_value,weight_unit,retail_price_cents,stock_quantity)")
+    .order("is_featured", { ascending: false })
     .order("created_at", { ascending: false });
 
   return (
@@ -22,7 +23,7 @@ export default async function AdminProductsPage() {
 
       {error ? <p className="mt-8 rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-red-100">{error.message}</p> : null}
 
-      <div className="admin-featured-note mt-8">
+      <div id="featured-items" className="admin-featured-note mt-8 scroll-mt-36">
         <div>
           <span>Homepage shelf</span>
           <strong>Featured items</strong>
