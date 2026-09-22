@@ -1,4 +1,3 @@
-import { ComingSoonCard } from "@/components/products/coming-soon-card";
 import { ProductCard } from "@/components/products/product-card";
 import { comingSoonSpices } from "@/lib/coming-soon";
 import { FloatingFilterBar } from "@/components/shop/floating-filter-bar";
@@ -113,10 +112,24 @@ export default async function ShopPage({ searchParams }: Props) {
               <span>4 preview jars</span>
             </div>
 
-            <div className="pantry-preview-grid">
-              {comingSoonSpices.map((spice) => (
-                <ComingSoonCard key={spice.name} spice={spice} />
-              ))}
+            <div className="shop-display-shelf">
+              <div className="shop-display-grid">
+                {comingSoonSpices.map((spice) => (
+                  <article className="shop-display-item" key={spice.name}>
+                    <div className="shop-display-jar-zone">
+                      <img src={spice.image} alt={spice.name} className="shop-display-jar" />
+                    </div>
+                    <div className="shop-display-copy">
+                      <h3>{spice.name}</h3>
+                      <span>{spice.note}</span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              <div className="shop-display-shelf-edge" aria-hidden="true">
+                <span />
+                <i />
+              </div>
             </div>
           </section>
         ) : null}
