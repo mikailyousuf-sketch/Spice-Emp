@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { addToCart } from "@/app/cart/actions";
 
 type Recommendation = {
   id: string;
@@ -12,6 +13,8 @@ type Recommendation = {
   imageUrl: string | null;
   imageAlt: string;
   priceCents: number | null;
+  variantId: string | null;
+  variantLabel: string | null;
   inStock: boolean;
   matched: string[];
   score: number;
@@ -163,6 +166,22 @@ export function SpiceAssistant() {
                       <span>Heat {product.heatLevel}/5</span>
                       <Link href={`/spices/${product.slug}`}>View spice →</Link>
                     </div>
+
+                    {product.variantId && product.inStock ? (
+                      <form action={addToCart} className="assistant-cart-form">
+                        <input type="hidden" name="variantId" value={product.variantId} />
+                        <input type="hidden" name="quantity" value="1" />
+                        <button type="submit" className="assistant-add-button">
+                          <span>Add {product.variantLabel ?? "to cart"}</span>
+                          <strong>
+                            {product.priceCents !== null
+                              ? `R${(product.priceCents / 100).toFixed(2)}`
+                              : "Add to cart"}
+                          </strong>
+                          <i aria-hidden="true">＋</i>
+                        </button>
+                      </form>
+                    ) : null}
                   </div>
                 </article>
               ))}
@@ -174,10 +193,10 @@ export function SpiceAssistant() {
           )}
 
           <div className="assistant-grounding-note">
-            <span>Why no quantities yet?</span>
+            <span>How it works</span>
             <p>
-              Exact teaspoon/gram recommendations will only appear once a verified recipe is linked
-              to the relevant catalogue products. We do not invent recipe quantities.
+              The assistant suggests real products from the live pantry based on what you describe.
+              Choose what sounds right and add it straight to your cart.
             </p>
           </div>
         </section>
@@ -185,7 +204,7 @@ export function SpiceAssistant() {
         <div className="assistant-trust-row">
           <div><span>01</span><strong>Real products only</strong><p>No invented jars or availability.</p></div>
           <div><span>02</span><strong>Live catalogue</strong><p>Matches aliases, flavour, cuisine and use.</p></div>
-          <div><span>03</span><strong>Recipe-ready</strong><p>Quantities unlock from verified recipes later.</p></div>
+          <div><span>03</span><strong>Shop instantly</strong><p>Add suggested spices straight to your cart.</p></div>
         </div>
       )}
     </div>
