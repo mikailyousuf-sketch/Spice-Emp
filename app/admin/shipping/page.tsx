@@ -4,6 +4,7 @@ import {
   deleteShippingMethod,
   testCourierGuyConnection,
   testPudoConnection,
+  retryPaidOrderShipment,
   updateShippingMethod,
 } from "./actions";
 
@@ -16,11 +17,19 @@ export const metadata = { title: "Shipping" };
 export default async function ShippingAdminPage({ searchParams }: Props) {
   const { error, saved, test } = await searchParams;
   const supabase = await createClient();
-  const { data: methods } = await supabase
-    .from("shipping_methods")
-    .select("*")
-    .order("sort_order")
-    .order("name");
+  const [{ data: methods }, { data: shipmentQueue }] = await Promise.all([
+    supabase
+      .from("shipping_methods")
+      .select("*")
+      .order("sort_order")
+      .order("name"),
+    supabase
+      .from("shipments")
+      .select("id,order_id,provider,status,service_level_code,tracking_reference,quoted_rate_cents,created_at,orders(id,order_number,email,payment_status)")
+      .in("status", ["draft", "failed"])
+      .order("created_at", { ascending: false })
+      .limit(20),
+  ]);
 
   return (
     <section>
@@ -88,6 +97,59 @@ export default async function ShippingAdminPage({ searchParams }: Props) {
         <div className="mt-5 rounded-xl border border-white/10 bg-black/20 p-4 text-xs leading-6 text-stone-400">
           Checkout now requests live Courier Guy/PUDO rates from the active cart and verifies the selected rate again server-side before payment.
           Product variants must have shipping weight and dimensions for live quotes to work.
+        </div>
+      </section>
+
+      <section className="glass-soft mt-8 rounded-[2rem] p-6 sm:p-8">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="display-font text-2xl font-semibold">Shipment queue</p>
+            <p className="mt-1 text-sm text-stone-500">
+              Paid courier orders are submitted automatically. Failed submissions stay here so they can be retried safely.
+            </p>
+          </div>
+          <span className="text-xs uppercase tracking-[.15em] text-stone-500">
+            {shipmentQueue?.length ?? 0} waiting
+          </span>
+        </div>
+
+        <div className="mt-5 grid gap-3">
+          {shipmentQueue?.length ? shipmentQueue.map((shipment) => {
+            const order = Array.isArray(shipment.orders) ? shipment.orders[0] : shipment.orders;
+            const paid = order?.payment_status === "paid";
+
+            return (
+              <div key={shipment.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <strong>{order?.order_number || "Order"}</strong>
+                      <span className="admin-featured-badge">{shipment.status}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-stone-500">
+                      {shipment.provider === "pudo" ? "PUDO" : "The Courier Guy"}
+                      {" · "}
+                      {shipment.service_level_code || "service pending"}
+                      {shipment.quoted_rate_cents != null ? " · R" + (shipment.quoted_rate_cents / 100).toFixed(2) : ""}
+                    </p>
+                  </div>
+
+                  {paid && order?.id ? (
+                    <form action={retryPaidOrderShipment}>
+                      <input type="hidden" name="orderId" value={order.id} />
+                      <button type="submit" className="btn-secondary">Retry shipment</button>
+                    </form>
+                  ) : (
+                    <span className="text-xs text-stone-500">Awaiting successful payment</span>
+                  )}
+                </div>
+              </div>
+            );
+          }) : (
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-5 text-sm text-stone-500">
+              No draft or failed courier shipments.
+            </div>
+          )}
         </div>
       </section>
 
