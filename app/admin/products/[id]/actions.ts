@@ -454,7 +454,9 @@ export async function uploadProductImage(formData: FormData) {
     redirect(productAdminUrl(productId, rowError.message));
   }
 
+  revalidatePath("/");
   revalidatePath("/shop");
+  revalidatePath("/admin/products");
   redirect(productAdminUrl(productId));
 }
 
@@ -484,7 +486,9 @@ export async function setPrimaryImage(formData: FormData) {
     redirect(productAdminUrl(productId, error.message));
   }
 
+  revalidatePath("/");
   revalidatePath("/shop");
+  revalidatePath("/admin/products");
   redirect(productAdminUrl(productId));
 }
 
@@ -526,7 +530,9 @@ export async function deleteProductImage(formData: FormData) {
     }
   }
 
+  revalidatePath("/");
   revalidatePath("/shop");
+  revalidatePath("/admin/products");
   redirect(productAdminUrl(productId));
 }
 
