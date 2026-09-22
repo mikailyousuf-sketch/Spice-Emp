@@ -25,8 +25,28 @@ const schema = z.object({
   heightCm: z.coerce.number().positive(),
 });
 
+const imageTypes = new Map([
+  ["image/jpeg", "jpg"],
+  ["image/png", "png"],
+  ["image/webp", "webp"],
+  ["image/avif", "avif"],
+]);
+
 export async function createProduct(formData: FormData) {
   await requireAdmin();
+
+  const primaryImage = formData.get("primaryImage");
+  const hasPrimaryImage = primaryImage instanceof File && primaryImage.size > 0;
+
+  if (hasPrimaryImage && primaryImage.size > 8 * 1024 * 1024) {
+    redirect("/admin/products/new?error=Product%20images%20must%20be%208MB%20or%20smaller.");
+  }
+
+  const primaryImageExtension = hasPrimaryImage ? imageTypes.get(primaryImage.type) : undefined;
+
+  if (hasPrimaryImage && !primaryImageExtension) {
+    redirect("/admin/products/new?error=Use%20a%20JPG%2C%20PNG%2C%20WebP%20or%20AVIF%20image.");
+  }
 
   const parsed = schema.safeParse({
     name: formData.get("name"),
@@ -88,7 +108,37 @@ export async function createProduct(formData: FormData) {
     redirect(`/admin/products/new?error=${encodeURIComponent(variantError.message)}`);
   }
 
+  if (hasPrimaryImage && primaryImageExtension) {
+    const storagePath = `${product.id}/${crypto.randomUUID()}.${primaryImageExtension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("product-images")
+      .upload(storagePath, primaryImage, {
+        contentType: primaryImage.type,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      await supabase.from("products").delete().eq("id", product.id);
+      redirect(`/admin/products/new?error=${encodeURIComponent(`Image upload failed: ${uploadError.message}`)}`);
+    }
+
+    const { error: imageRowError } = await supabase.from("product_images").insert({
+      product_id: product.id,
+      storage_path: storagePath,
+      alt_text: String(formData.get("imageAltText") || "").trim() || parsed.data.name,
+      is_primary: true,
+      sort_order: 0,
+    });
+
+    if (imageRowError) {
+      await supabase.storage.from("product-images").remove([storagePath]);
+      await supabase.from("products").delete().eq("id", product.id);
+      redirect(`/admin/products/new?error=${encodeURIComponent(`Image record failed: ${imageRowError.message}`)}`);
+    }
+  }
+
   revalidatePath("/shop");
   revalidatePath("/admin/products");
-  redirect("/admin/products");
+  redirect(`/admin/products/${product.id}?created=1`);
 }
