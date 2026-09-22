@@ -1,23 +1,36 @@
-export const metadata = { title: "AI Spice Assistant" };
+import Link from "next/link";
+import { SpiceAssistant } from "@/components/assistant/spice-assistant";
+
+export const metadata = {
+  title: "Spice Assistant",
+  description: "Tell The Glided Pantry what you're cooking and discover matching spices from the live catalogue.",
+};
 
 export default function AssistantPage() {
   return (
-    <main className="pt-32">
-      <section className="section-wrap py-24">
-        <div className="glass rounded-[2.5rem] p-8 sm:p-12">
-          <span className="eyebrow">AI Spice Assistant</span>
-          <h1 className="display-font mt-6 max-w-4xl text-5xl font-semibold tracking-[-.05em] sm:text-6xl">
-            Tell us what you&apos;re cooking.
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-stone-400">
-            The interface is ready for the next phase: recipe matching and catalogue-grounded
-            product recommendations. We won&apos;t fake results before the recipe and product data
-            are connected.
-          </p>
-          <div className="glass-soft mt-10 rounded-3xl p-4 text-stone-500">
-            AI query input will activate after the recipe and catalogue services are wired.
+    <main className="assistant-page">
+      <section className="section-wrap assistant-shell">
+        <header className="assistant-hero">
+          <div>
+            <p className="pantry-kicker">Ask the pantry</p>
+            <h1>Tell us what you&apos;re cooking.</h1>
           </div>
-        </div>
+          <div className="assistant-hero-side">
+            <p>
+              Describe the dish, ingredient, cuisine, flavour or heat you want.
+              The assistant searches only the products that actually exist in The Glided Pantry.
+            </p>
+            <Link href="/shop">Browse manually →</Link>
+          </div>
+        </header>
+
+        <SpiceAssistant />
+
+        <footer className="assistant-footer-line">
+          <span />
+          <p>Real pantry data · No invented stock · No made-up prices</p>
+          <span />
+        </footer>
       </section>
     </main>
   );
