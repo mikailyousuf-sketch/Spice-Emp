@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getCartSnapshot } from "@/lib/cart";
 import { buildCartParcels } from "@/lib/shipping/cart-parcels";
-import { getShippingProvider } from "@/lib/shipping";
+import { CourierGuyProvider } from "@/lib/shipping/courier-guy";
 import { getShippingOrigin } from "@/lib/shipping/origin";
 
 const schema = z.object({
-  provider: z.enum(["courier_guy", "pudo"]),
+  deliveryMode: z.enum(["door", "locker"]),
   deliveryLockerCode: z.string().trim().min(2).optional(),
   deliveryAddress: z.object({
     streetAddress: z.string().trim().min(3),
@@ -28,12 +28,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid shipping quote request." }, { status: 400 });
     }
 
-    if (parsed.data.provider === "courier_guy" && !parsed.data.deliveryAddress) {
+    if (parsed.data.deliveryMode === "door" && !parsed.data.deliveryAddress) {
       return NextResponse.json({ error: "A delivery address is required." }, { status: 400 });
     }
 
-    if (parsed.data.provider === "pudo" && !parsed.data.deliveryLockerCode) {
-      return NextResponse.json({ error: "Choose a PUDO locker first." }, { status: 400 });
+    if (parsed.data.deliveryMode === "locker" && !parsed.data.deliveryLockerCode) {
+      return NextResponse.json({ error: "Choose a Courier Guy locker first." }, { status: 400 });
     }
 
     const cart = await getCartSnapshot();
@@ -43,11 +43,11 @@ export async function POST(request: Request) {
     }
 
     const parcels = buildCartParcels(cart.items as never[]);
-    const provider = getShippingProvider(parsed.data.provider);
+    const provider = new CourierGuyProvider();
 
     const quotes = await provider.getRates({
       collectionAddress: getShippingOrigin(),
-      deliveryAddress: parsed.data.deliveryAddress
+      deliveryAddress: parsed.data.deliveryMode === "door" && parsed.data.deliveryAddress
         ? {
             streetAddress: parsed.data.deliveryAddress.streetAddress,
             localArea: parsed.data.deliveryAddress.localArea ?? null,
@@ -60,7 +60,10 @@ export async function POST(request: Request) {
             longitude: parsed.data.deliveryAddress.longitude ?? null,
           }
         : undefined,
-      deliveryLockerCode: parsed.data.deliveryLockerCode,
+      deliveryLockerCode:
+        parsed.data.deliveryMode === "locker"
+          ? parsed.data.deliveryLockerCode
+          : undefined,
       parcels,
     });
 
