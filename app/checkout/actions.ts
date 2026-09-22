@@ -7,6 +7,9 @@ import { getCurrentUserId } from "@/lib/auth";
 import { getPaymentProvider } from "@/lib/payments";
 import { cancelOrderAndRestoreStock } from "@/lib/payments/order-state";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { buildCartParcels } from "@/lib/shipping/cart-parcels";
+import { getShippingProvider } from "@/lib/shipping";
+import { getShippingOrigin } from "@/lib/shipping/origin";
 
 const checkoutSchema = z.object({
   email: z.string().trim().email(),
@@ -22,7 +25,11 @@ const checkoutSchema = z.object({
   postalCode: z.string().trim().min(3).max(12),
   notes: z.string().trim().max(1000).optional(),
   paymentProvider: z.enum(["yoco", "paystack"]),
-  shippingMethodId: z.string().uuid(),
+  shippingChoiceType: z.enum(["manual", "live"]),
+  shippingMethodId: z.string().uuid().optional(),
+  shippingProvider: z.enum(["courier_guy", "pudo"]).optional(),
+  shippingServiceLevelCode: z.string().trim().min(1).max(120).optional(),
+  shippingLockerCode: z.string().trim().max(120).optional(),
 });
 
 function makeOrderNumber() {
@@ -45,7 +52,11 @@ export async function createOrder(formData: FormData) {
     postalCode: formData.get("postalCode"),
     notes: formData.get("notes") || undefined,
     paymentProvider: formData.get("paymentProvider"),
-    shippingMethodId: formData.get("shippingMethodId"),
+    shippingChoiceType: formData.get("shippingChoiceType"),
+    shippingMethodId: formData.get("shippingMethodId") || undefined,
+    shippingProvider: formData.get("shippingProvider") || undefined,
+    shippingServiceLevelCode: formData.get("shippingServiceLevelCode") || undefined,
+    shippingLockerCode: formData.get("shippingLockerCode") || undefined,
   });
 
   if (!parsed.success) redirect("/checkout?error=Please%20check%20your%20checkout%20details.");
@@ -75,21 +86,106 @@ export async function createOrder(formData: FormData) {
     0,
   );
 
-  const { data: shippingMethod, error: shippingError } = await admin
-    .from("shipping_methods")
-    .select("id,name,fee_cents,free_above_cents,is_active")
-    .eq("id", parsed.data.shippingMethodId)
-    .eq("is_active", true)
-    .maybeSingle();
+  let shippingCents = 0;
+  let shippingMethodId: string | null = null;
+  let shippingMethodSnapshot = "";
+  let selectedLiveQuote: {
+    provider: "courier_guy" | "pudo";
+    serviceLevelCode: string;
+    serviceName: string;
+    rateCents: number;
+    raw: unknown;
+    lockerCode?: string;
+  } | null = null;
 
-  if (shippingError || !shippingMethod) {
-    redirect("/checkout?error=Please%20choose%20a%20valid%20delivery%20method.");
+  if (parsed.data.shippingChoiceType === "manual") {
+    if (!parsed.data.shippingMethodId) {
+      redirect("/checkout?error=Please%20choose%20a%20collection%20method.");
+    }
+
+    const { data: shippingMethod, error: shippingError } = await admin
+      .from("shipping_methods")
+      .select("id,name,fee_cents,free_above_cents,is_active,is_collection")
+      .eq("id", parsed.data.shippingMethodId)
+      .eq("is_active", true)
+      .eq("is_collection", true)
+      .maybeSingle();
+
+    if (shippingError || !shippingMethod) {
+      redirect("/checkout?error=Please%20choose%20a%20valid%20collection%20method.");
+    }
+
+    shippingMethodId = shippingMethod.id;
+    shippingMethodSnapshot = shippingMethod.name;
+    shippingCents =
+      shippingMethod.free_above_cents != null && subtotalCents >= shippingMethod.free_above_cents
+        ? 0
+        : shippingMethod.fee_cents;
+  } else {
+    if (!parsed.data.shippingProvider || !parsed.data.shippingServiceLevelCode) {
+      redirect("/checkout?error=Please%20select%20a%20live%20courier%20rate.");
+    }
+
+    if (parsed.data.shippingProvider === "pudo" && !parsed.data.shippingLockerCode) {
+      redirect("/checkout?error=Please%20choose%20a%20PUDO%20locker.");
+    }
+
+    let parcels;
+    try {
+      parcels = buildCartParcels(cart.items as never[]);
+    } catch (error) {
+      redirect("/checkout?error=" + encodeURIComponent(
+        error instanceof Error ? error.message : "Shipping dimensions are missing.",
+      ));
+    }
+
+    try {
+      const shippingProvider = getShippingProvider(parsed.data.shippingProvider);
+      const quotes = await shippingProvider.getRates({
+        collectionAddress: getShippingOrigin(),
+        deliveryAddress: parsed.data.shippingProvider === "courier_guy"
+          ? {
+              company: parsed.data.company ?? null,
+              streetAddress: parsed.data.line1,
+              localArea: parsed.data.suburb ?? null,
+              suburb: parsed.data.suburb ?? null,
+              city: parsed.data.city,
+              postalCode: parsed.data.postalCode,
+              province: parsed.data.province,
+              country: "ZA",
+            }
+          : undefined,
+        deliveryLockerCode: parsed.data.shippingProvider === "pudo"
+          ? parsed.data.shippingLockerCode
+          : undefined,
+        parcels,
+      });
+
+      const quote = quotes.find(
+        (item) => item.serviceLevelCode === parsed.data.shippingServiceLevelCode,
+      );
+
+      if (!quote) {
+        redirect("/checkout?error=That%20courier%20rate%20is%20no%20longer%20available.%20Please%20refresh%20the%20rates.");
+      }
+
+      shippingCents = quote.rateCents;
+      shippingMethodSnapshot =
+        (quote.provider === "pudo" ? "PUDO" : "The Courier Guy") + " · " + quote.serviceName;
+      selectedLiveQuote = {
+        provider: quote.provider,
+        serviceLevelCode: quote.serviceLevelCode,
+        serviceName: quote.serviceName,
+        rateCents: quote.rateCents,
+        raw: quote.raw,
+        lockerCode: parsed.data.shippingLockerCode,
+      };
+    } catch (error) {
+      redirect("/checkout?error=" + encodeURIComponent(
+        error instanceof Error ? error.message : "Could not confirm the courier rate.",
+      ));
+    }
   }
-
-  const shippingCents =
-    shippingMethod.free_above_cents != null && subtotalCents >= shippingMethod.free_above_cents
-      ? 0
-      : shippingMethod.fee_cents;
 
   const totalCents = subtotalCents + shippingCents;
 
@@ -117,8 +213,8 @@ export async function createOrder(formData: FormData) {
       phone: parsed.data.phone,
       subtotal_cents: subtotalCents,
       shipping_cents: shippingCents,
-      shipping_method_id: shippingMethod.id,
-      shipping_method_snapshot: shippingMethod.name,
+      shipping_method_id: shippingMethodId,
+      shipping_method_snapshot: shippingMethodSnapshot,
       discount_cents: 0,
       tax_cents: 0,
       total_cents: totalCents,
@@ -131,6 +227,23 @@ export async function createOrder(formData: FormData) {
 
   if (orderError || !order) {
     redirect(`/checkout?error=${encodeURIComponent(orderError?.message ?? "Could not create order.")}`);
+  }
+
+  if (selectedLiveQuote) {
+    const { error: shipmentError } = await admin.from("shipments").insert({
+      order_id: order.id,
+      provider: selectedLiveQuote.provider,
+      status: "draft",
+      service_level_code: selectedLiveQuote.serviceLevelCode,
+      delivery_locker_code: selectedLiveQuote.lockerCode ?? null,
+      quoted_rate_cents: selectedLiveQuote.rateCents,
+      provider_response: selectedLiveQuote.raw,
+    });
+
+    if (shipmentError) {
+      await admin.from("orders").delete().eq("id", order.id);
+      redirect("/checkout?error=" + encodeURIComponent(shipmentError.message));
+    }
   }
 
   const { error: itemsError } = await admin.from("order_items").insert(
