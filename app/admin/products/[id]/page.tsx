@@ -14,6 +14,9 @@ import {
   updateTaxonomy,
   updateVariant,
   uploadProductImage,
+  uploadJarRender,
+  uploadHeroRender,
+  clearVisualRender,
 } from "./actions";
 
 type Props = {
@@ -39,7 +42,7 @@ export default async function EditProductPage({ params, searchParams }: Props) {
     supabase
       .from("products")
       .select(`
-        id,name,slug,short_description,description,product_type_id,heat_level,is_active,
+        id,name,slug,short_description,description,product_type_id,heat_level,is_active,jar_render_path,hero_render_path,
         product_variants(id,sku,weight_value,weight_unit,retail_price_cents,stock_quantity,low_stock_threshold,shipping_weight_kg,length_cm,width_cm,height_cm),
         product_aliases(id,alias),
         product_images(id,storage_path,alt_text,is_primary,sort_order),
@@ -125,6 +128,37 @@ export default async function EditProductPage({ params, searchParams }: Props) {
           <TaxonomyGroup name="cookingMethodIds" label="Cooking methods" options={cookingMethods ?? []} selected={selectedMethods} />
           <button className="btn-secondary w-fit" type="submit">Save classification</button>
         </form>
+      </section>
+
+      <section className="glass-soft mt-8 rounded-[2rem] p-6 sm:p-8">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="display-font text-2xl font-semibold">Premium renders</p>
+            <p className="mt-1 text-sm text-stone-500">
+              Upload the generated jar artwork used across the storefront. These are separate from the normal product gallery.
+            </p>
+          </div>
+          <span className="text-xs uppercase tracking-[.16em] text-stone-500">Jar + hero</span>
+        </div>
+
+        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+          <RenderUploader
+            title="Catalogue jar render"
+            description="Front-facing premium jar for shop cards and collection shelves."
+            path={product.jar_render_path}
+            productId={product.id}
+            action={uploadJarRender}
+            field="jar_render_path"
+          />
+          <RenderUploader
+            title="Featured hero render"
+            description="Optional editorial render for homepage and feature placements."
+            path={product.hero_render_path}
+            productId={product.id}
+            action={uploadHeroRender}
+            field="hero_render_path"
+          />
+        </div>
       </section>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
@@ -338,5 +372,54 @@ function TaxonomyGroup({
         ))}
       </div>
     </fieldset>
+  );
+}
+
+
+function RenderUploader({
+  title,
+  description,
+  path,
+  productId,
+  action,
+  field,
+}: {
+  title: string;
+  description: string;
+  path: string | null;
+  productId: string;
+  action: (formData: FormData) => Promise<void>;
+  field: "jar_render_path" | "hero_render_path";
+}) {
+  const url = getProductImageUrl(path);
+
+  return (
+    <div className="rounded-[1.6rem] border border-white/10 bg-black/20 p-4">
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/40">
+        {url ? (
+          <img src={url} alt="" className="aspect-[4/5] w-full object-contain" />
+        ) : (
+          <div className="grid aspect-[4/5] place-items-center text-center text-sm text-stone-600">
+            No render uploaded yet
+          </div>
+        )}
+      </div>
+      <p className="mt-4 font-semibold text-stone-200">{title}</p>
+      <p className="mt-1 text-sm leading-6 text-stone-500">{description}</p>
+
+      <form action={action} encType="multipart/form-data" className="mt-4 grid gap-3">
+        <input type="hidden" name="productId" value={productId} />
+        <input name="render" type="file" accept="image/jpeg,image/png,image/webp,image/avif" required className="field" />
+        <button type="submit" className="btn-secondary w-fit">{url ? "Replace render" : "Upload render"}</button>
+      </form>
+
+      {url ? (
+        <form action={clearVisualRender} className="mt-3">
+          <input type="hidden" name="productId" value={productId} />
+          <input type="hidden" name="field" value={field} />
+          <button type="submit" className="text-xs text-red-300">Remove render</button>
+        </form>
+      ) : null}
+    </div>
   );
 }
