@@ -119,6 +119,7 @@ export async function testCourierGuyConnection() {
   if (!token) redirect("/admin/shipping?test=" + encodeURIComponent("Courier Guy API key is not configured."));
 
   const base = (process.env.COURIER_GUY_API_BASE_URL || "https://api.shiplogic.com").replace(/\/$/, "");
+  let message = "";
 
   try {
     const response = await fetch(base + "/pickup-points?type=locker", {
@@ -132,34 +133,32 @@ export async function testCourierGuyConnection() {
     const raw = await response.json().catch(() => null);
 
     if (!response.ok) {
-      const message =
+      message =
         typeof raw?.message === "string"
           ? raw.message
           : typeof raw?.error === "string"
             ? raw.error
             : "Courier Guy authentication failed.";
-      redirect("/admin/shipping?test=" + encodeURIComponent(message));
+    } else {
+      message = "Courier Guy connection successful. API credentials were accepted.";
     }
-
-    redirect("/admin/shipping?test=" + encodeURIComponent("Courier Guy connection successful. API credentials were accepted."));
   } catch (error) {
-    redirect("/admin/shipping?test=" + encodeURIComponent(
-      error instanceof Error ? error.message : "Courier Guy connection test failed.",
-    ));
+    message = error instanceof Error ? error.message : "Courier Guy connection test failed.";
   }
+
+  redirect("/admin/shipping?test=" + encodeURIComponent(message));
 }
 
 export async function testPudoConnection() {
   await requireAdmin();
 
+  let message = "";
   try {
     const lockers = await new PudoProvider().getLockers();
-    redirect("/admin/shipping?test=" + encodeURIComponent(
-      "PUDO connection successful. " + lockers.length + " lockers returned.",
-    ));
+    message = "PUDO connection successful. " + lockers.length + " lockers returned.";
   } catch (error) {
-    redirect("/admin/shipping?test=" + encodeURIComponent(
-      error instanceof Error ? error.message : "PUDO connection test failed.",
-    ));
+    message = error instanceof Error ? error.message : "PUDO connection test failed.";
   }
+
+  redirect("/admin/shipping?test=" + encodeURIComponent(message));
 }
