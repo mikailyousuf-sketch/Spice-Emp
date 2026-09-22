@@ -140,13 +140,13 @@ export async function createShipmentForPaidOrder(orderId: string) {
 
   const { data: order, error: orderError } = await admin
     .from("orders")
-    .select(\`
+    .select(`
       id,order_number,email,phone,shipping_address,payment_status,
       order_items(
         product_name_snapshot,sku_snapshot,quantity,
         product_variants(shipping_weight_kg,length_cm,width_cm,height_cm)
       )
-    \`)
+    `)
     .eq("id", orderId)
     .maybeSingle();
 
