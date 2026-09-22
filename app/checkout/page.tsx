@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCartSnapshot } from "@/lib/cart";
+import { ShippingQuotePicker } from "@/components/checkout/shipping-quote-picker";
 import { createOrder } from "./actions";
 
 type Props = { searchParams: Promise<{ error?: string }> };
@@ -34,7 +35,7 @@ export default async function CheckoutPage({ searchParams }: Props) {
         <h1 className="display-font mt-5 text-5xl font-semibold tracking-[-.05em] sm:text-6xl">Delivery & payment</h1>
         {error ? <p className="mt-6 rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-red-100">{error}</p> : null}
 
-        <form action={createOrder} className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
+        <form id="checkout-form" action={createOrder} className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="grid gap-6">
             <div className="glass-soft grid gap-5 rounded-[2rem] p-6 sm:p-8">
               <p className="display-font text-2xl font-semibold">Delivery details</p>
@@ -67,41 +68,13 @@ export default async function CheckoutPage({ searchParams }: Props) {
 
             <div className="glass-soft rounded-[2rem] p-6 sm:p-8">
               <p className="display-font text-2xl font-semibold">Delivery method</p>
-              <p className="mt-2 text-sm text-stone-500">Choose from the delivery options configured by the store.</p>
-              <div className="mt-5 grid gap-3">
-                {shippingMethods?.length ? shippingMethods.map((method, index) => {
-                  const effectiveFee = method.free_above_cents != null && subtotal >= method.free_above_cents
-                    ? 0
-                    : method.fee_cents;
-
-                  return (
-                    <label key={method.id} className="cursor-pointer">
-                      <input
-                        type="radio"
-                        name="shippingMethodId"
-                        value={method.id}
-                        defaultChecked={index === 0}
-                        className="peer sr-only"
-                      />
-                      <span className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[.03] p-5 transition peer-checked:border-orange-300/40 peer-checked:bg-orange-300/10">
-                        <span>
-                          <span className="display-font block text-lg font-semibold">{method.name}</span>
-                          <span className="mt-1 block text-sm text-stone-500">
-                            {method.description || (method.is_collection ? "Collection" : "Delivery")}
-                          </span>
-                        </span>
-                        <span className="font-semibold text-orange-100">
-                          {effectiveFee === 0 ? "Free" : `R${(effectiveFee / 100).toFixed(2)}`}
-                        </span>
-                      </span>
-                    </label>
-                  );
-                }) : (
-                  <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-100">
-                    No delivery methods are configured yet. Checkout is temporarily unavailable.
-                  </div>
-                )}
-              </div>
+              <p className="mt-2 text-sm text-stone-500">
+                Get a live Courier Guy door-delivery rate, choose a PUDO locker, or use an enabled collection option.
+              </p>
+              <ShippingQuotePicker
+                subtotalCents={subtotal}
+                collectionMethods={(shippingMethods ?? []).filter((method) => method.is_collection)}
+              />
             </div>
 
             <div className="glass-soft rounded-[2rem] p-6 sm:p-8">
@@ -145,7 +118,7 @@ export default async function CheckoutPage({ searchParams }: Props) {
               <span className="text-stone-400">Subtotal</span>
               <span className="text-lg font-semibold">R{(subtotal / 100).toFixed(2)}</span>
             </div>
-            <button className="btn-primary mt-6 w-full disabled:cursor-not-allowed disabled:opacity-40" type="submit" disabled={!shippingMethods?.length}>Continue to payment</button>
+            <button className="btn-primary mt-6 w-full" type="submit">Continue to payment</button>
             <Link href="/cart" className="btn-secondary mt-3 w-full">Back to cart</Link>
           </aside>
         </form>
