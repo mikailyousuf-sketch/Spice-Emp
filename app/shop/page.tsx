@@ -1,5 +1,4 @@
 import { ProductCard } from "@/components/products/product-card";
-import { comingSoonSpices } from "@/lib/coming-soon";
 import { FloatingFilterBar } from "@/components/shop/floating-filter-bar";
 import { createClient } from "@/lib/supabase/server";
 
@@ -101,38 +100,6 @@ export default async function ShopPage({ searchParams }: Props) {
             Search by spice, cuisine, dish, flavour, cooking method or heat.
           </p>
         </header>
-
-        {!searchTerm && !filters.type && !filters.cuisine && !filters.food && !filters.flavour && !filters.method && !filters.heat ? (
-          <section className="pantry-preview-shelf">
-            <div className="pantry-preview-head">
-              <div>
-                <p className="pantry-kicker">Coming soon</p>
-                <h2>A first look at the shelf.</h2>
-              </div>
-              <span>4 preview jars</span>
-            </div>
-
-            <div className="shop-display-shelf">
-              <div className="shop-display-grid">
-                {comingSoonSpices.map((spice) => (
-                  <article className="shop-display-item" key={spice.name}>
-                    <div className="shop-display-jar-zone">
-                      <img src={spice.image} alt={spice.name} className="shop-display-jar" />
-                    </div>
-                    <div className="shop-display-copy">
-                      <h3>{spice.name}</h3>
-                      <span>{spice.note}</span>
-                    </div>
-                  </article>
-                ))}
-              </div>
-              <div className="shop-display-shelf-edge" aria-hidden="true">
-                <span />
-                <i />
-              </div>
-            </div>
-          </section>
-        ) : null}
 
         <div id="pantry-search">
           <FloatingFilterBar
