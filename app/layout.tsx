@@ -29,8 +29,14 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${cormorant.variable}`}>
-      <body>
+    <html
+      lang="en"
+      className={`${inter.variable} ${cormorant.variable}`}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
+      <body suppressHydrationWarning>
+        <div className="marble-page-bg" aria-hidden="true" />
         <div className="site-shell">
           <Navbar />
           {children}
