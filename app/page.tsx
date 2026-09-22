@@ -39,7 +39,7 @@ export default async function HomePage() {
             <p className="pantry-kicker">The Glided Pantry · South Africa</p>
             <h1>A more flavourful pantry.</h1>
             <p className="pantry-subline">
-              Global spice <b>·</b> Better cooking <b>·</b> Beautifully simple
+              Spices from around the world <b>·</b> Made easier to discover
             </p>
             <span className="pantry-gold-dash" />
             <div className="pantry-hero-actions">
@@ -103,6 +103,11 @@ export default async function HomePage() {
             <p>Good food lives here</p>
             <span />
           </div>
+
+          <Link href="/shop#pantry-search" className="pantry-scroll-cue">
+            <span>Explore</span>
+            <i>↓</i>
+          </Link>
         </div>
       </section>
 
