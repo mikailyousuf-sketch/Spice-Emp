@@ -16,7 +16,7 @@ export default async function NewProductPage({ searchParams }: Props) {
 
       {error ? <p className="mt-6 rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-red-100">{error}</p> : null}
 
-      <form action={createProduct} className="glass-soft mt-8 grid gap-5 rounded-[2rem] p-6 sm:p-8">
+      <form action={createProduct} encType="multipart/form-data" className="glass-soft mt-8 grid gap-5 rounded-[2rem] p-6 sm:p-8">
         <div className="grid gap-5 md:grid-cols-2">
           <Field label="Product name"><input name="name" required className="field" /></Field>
           <Field label="Slug"><input name="slug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="ground-cumin" className="field" /></Field>
@@ -38,6 +38,36 @@ export default async function NewProductPage({ searchParams }: Props) {
             </select>
           </Field>
         </div>
+
+        <div className="border-t border-white/10 pt-5">
+          <p className="display-font text-xl font-semibold">Product image</p>
+          <p className="mt-1 text-sm text-stone-500">
+            Optional. Add the first product photo now; it will become the primary image.
+          </p>
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-2">
+          <Field label="Primary image">
+            <input
+              name="primaryImage"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/avif"
+              className="field"
+            />
+          </Field>
+          <Field label="Image description">
+            <input
+              name="imageAltText"
+              maxLength={180}
+              placeholder="e.g. Whole cumin spice jar"
+              className="field"
+            />
+          </Field>
+        </div>
+
+        <p className="-mt-2 text-xs leading-5 text-stone-500">
+          JPG, PNG, WebP or AVIF. Maximum 8 MB. Transparent PNG/WebP works well for premium jar artwork.
+        </p>
 
         <div className="border-t border-white/10 pt-5">
           <p className="display-font text-xl font-semibold">First variant</p>
