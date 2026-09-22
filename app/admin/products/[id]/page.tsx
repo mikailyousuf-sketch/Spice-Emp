@@ -42,7 +42,7 @@ export default async function EditProductPage({ params, searchParams }: Props) {
     supabase
       .from("products")
       .select(`
-        id,name,slug,short_description,description,product_type_id,heat_level,is_active,jar_render_path,hero_render_path,
+        id,name,slug,short_description,description,product_type_id,heat_level,is_active,is_featured,jar_render_path,hero_render_path,
         product_variants(id,sku,weight_value,weight_unit,retail_price_cents,stock_quantity,low_stock_threshold,shipping_weight_kg,length_cm,width_cm,height_cm),
         product_aliases(id,alias),
         product_images(id,storage_path,alt_text,is_primary,sort_order),
@@ -104,10 +104,23 @@ export default async function EditProductPage({ params, searchParams }: Props) {
           </Field>
         </div>
 
-        <label className="flex items-center gap-3 text-sm text-stone-300">
-          <input type="checkbox" name="isActive" defaultChecked={product.is_active} />
-          Product is active and visible publicly
-        </label>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="admin-check-row">
+            <input type="checkbox" name="isActive" defaultChecked={product.is_active} />
+            <span>
+              <strong>Active product</strong>
+              <small>Visible publicly in the catalogue.</small>
+            </span>
+          </label>
+
+          <label className="admin-check-row">
+            <input type="checkbox" name="isFeatured" defaultChecked={product.is_featured} />
+            <span>
+              <strong>Featured on homepage</strong>
+              <small>The homepage displays up to four featured products.</small>
+            </span>
+          </label>
+        </div>
 
         <button className="btn-primary w-fit" type="submit">Save product</button>
       </form>
