@@ -86,7 +86,7 @@ Migration 0004 creates the public product-image Storage bucket and admin-only wr
 Migration 0005 adds search/filter indexes for names, aliases and discovery relationships.
 Migration 0009 adds payment-attempt tracking for Yoco and Paystack.
 Migration 0010 adds configurable shipping methods and order shipping snapshots.
-Migration 0011 adds Courier Guy/PUDO shipping-provider support, shipment records and parcel dimensions on variants.
+Migration 0011 adds The Courier Guy shipping-provider support, shipment records and parcel dimensions on variants.
 Migration 0012 adds dedicated catalogue-jar and featured-hero render paths for premium generated product artwork.
 Migration 0013 aligns product-image Storage limits with the admin upload flow.
 Migration 0014 stores signed-in pantry-assistant query analytics.
@@ -94,11 +94,11 @@ Migration 0015 adds wholesale/business quote enquiries and approval workflow.
 
 ## Courier Guy / PUDO
 
-The shipping layer supports live Courier Guy door delivery and PUDO locker delivery. Checkout requests live rates from the active cart and the selected rate is verified again server-side before payment.
+The shipping layer supports live The Courier Guy door and locker delivery. Checkout requests live rates from the active cart and the selected rate is verified again server-side before payment.
 
-Paid courier orders are then submitted automatically to the selected provider. Failed shipment submissions remain visible in the Admin shipping queue and can be retried.
+Paid courier orders are then submitted automatically to The Courier Guy. Failed shipment submissions remain visible in the Admin shipping queue and can be retried.
 
-Configure the provider API keys, Courier Guy account/provider ID where applicable, the collection/origin address, and the origin contact details in `.env.local`.
+Configure the The Courier Guy API key and account code, the collection/origin address, and the origin contact details in `.env.local`.
 
 Product variants require shipping weight, length, width and height before live courier rates can be requested.
 
@@ -107,7 +107,7 @@ The server endpoints are:
 - `GET /api/shipping/lockers` for PUDO locker data
 - `POST /api/shipping/quotes` for live courier quotes based on the active cart
 
-Admin users can test Courier Guy/PUDO API connectivity from `/admin/shipping`.
+Admin users can test The Courier Guy API connectivity from `/admin/shipping`.
 
 ## Payment testing
 
