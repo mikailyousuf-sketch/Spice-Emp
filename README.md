@@ -76,6 +76,7 @@ Run the SQL files in order using the Supabase SQL editor, or link the Supabase C
 9. `supabase/migrations/0009_payments.sql`
 10. `supabase/migrations/0010_shipping.sql`
 11. `supabase/migrations/0011_shipping_providers.sql`
+12. `supabase/migrations/0012_product_visual_renders.sql`
 
 Do not skip migration 0002. It creates profile/user-role automation and the admin write policies.
 Migration 0004 creates the public product-image Storage bucket and admin-only write policies.
@@ -83,6 +84,7 @@ Migration 0005 adds search/filter indexes for names, aliases and discovery relat
 Migration 0009 adds payment-attempt tracking for Yoco and Paystack.
 Migration 0010 adds configurable shipping methods and order shipping snapshots.
 Migration 0011 adds Courier Guy/PUDO shipping-provider support, shipment records and parcel dimensions on variants.
+Migration 0012 adds dedicated catalogue-jar and featured-hero render paths for premium generated product artwork.
 
 ## Courier Guy / PUDO
 
@@ -136,6 +138,16 @@ on conflict do nothing;
 ```
 
 You can then visit `/admin`.
+
+## Premium product renders
+
+Each product can now have:
+
+- a catalogue jar render for shop cards and collection shelves
+- an optional hero render for homepage/editorial placements
+- normal product gallery images separately
+
+Upload generated jar artwork from the product edit screen. The public storefront automatically prefers the premium render and falls back to the normal gallery image when no render is available.
 
 ## Product workflow
 
