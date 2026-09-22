@@ -1,4 +1,6 @@
+import { ComingSoonCard } from "@/components/products/coming-soon-card";
 import { ProductCard } from "@/components/products/product-card";
+import { comingSoonSpices } from "@/lib/coming-soon";
 import { FloatingFilterBar } from "@/components/shop/floating-filter-bar";
 import { createClient } from "@/lib/supabase/server";
 
@@ -95,6 +97,26 @@ export default async function ShopPage({ searchParams }: Props) {
           <p className="micro-label">The pantry</p>
           <h1 className="catalogue-heading mx-auto mt-4 max-w-4xl">Find the jar you need.</h1>
         </div>
+
+        {!searchTerm && !filters.type && !filters.cuisine && !filters.food && !filters.flavour && !filters.method && !filters.heat ? (
+          <section className="mt-12 border-y border-white/10 py-10">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="micro-label">Coming soon</p>
+                <h2 className="display-font mt-3 text-4xl italic tracking-[-.03em]">A first look at the shelf.</h2>
+              </div>
+              <span className="hidden text-[10px] font-semibold uppercase tracking-[.18em] text-white/30 sm:block">
+                4 preview jars
+              </span>
+            </div>
+
+            <div className="mt-6 grid gap-x-4 gap-y-14 sm:grid-cols-2 lg:grid-cols-4">
+              {comingSoonSpices.map((spice) => (
+                <ComingSoonCard key={spice.name} spice={spice} />
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <div id="pantry-search">
           <FloatingFilterBar
