@@ -39,6 +39,14 @@ export default async function NewProductPage({ searchParams }: Props) {
           </Field>
         </div>
 
+        <label className="admin-check-row">
+          <input type="checkbox" name="isFeatured" />
+          <span>
+            <strong>Featured on homepage</strong>
+            <small>The homepage displays up to four featured products.</small>
+          </span>
+        </label>
+
         <div className="border-t border-white/10 pt-5">
           <p className="display-font text-xl font-semibold">Product image</p>
           <p className="mt-1 text-sm text-stone-500">
