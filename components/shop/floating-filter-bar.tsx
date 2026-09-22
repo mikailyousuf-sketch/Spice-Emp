@@ -46,7 +46,7 @@ export function FloatingFilterBar({
           <span className="min-w-0 flex-1">
             <span className="block text-[9px] font-semibold uppercase tracking-[.24em] text-white/34">Search spices, cuisines or dishes</span>
             <span className="mt-1 block truncate display-font text-xl italic text-white/80">
-              {values.q || "What are you looking for?"}
+              {values.q || "Search the pantry"}
             </span>
           </span>
           <span className="text-[9px] font-semibold uppercase tracking-[.18em] text-white/35">
