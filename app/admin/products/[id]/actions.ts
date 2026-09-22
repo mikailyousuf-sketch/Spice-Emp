@@ -285,6 +285,112 @@ export async function deleteAlias(formData: FormData) {
   redirect(productAdminUrl(productId));
 }
 
+async function uploadVisualRender(formData: FormData, field: "jar_render_path" | "hero_render_path") {
+  await requireAdmin();
+
+  const productId = z.string().uuid().parse(formData.get("productId"));
+  const file = formData.get("render");
+
+  if (!(file instanceof File) || file.size === 0) {
+    redirect(productAdminUrl(productId, "Choose a render image to upload."));
+  }
+
+  if (file.size > 8 * 1024 * 1024) {
+    redirect(productAdminUrl(productId, "Render images must be 8MB or smaller."));
+  }
+
+  const allowed = new Map([
+    ["image/jpeg", "jpg"],
+    ["image/png", "png"],
+    ["image/webp", "webp"],
+    ["image/avif", "avif"],
+  ]);
+
+  const extension = allowed.get(file.type);
+  if (!extension) {
+    redirect(productAdminUrl(productId, "Use a JPG, PNG, WebP or AVIF render."));
+  }
+
+  const supabase = await createClient();
+  const role = field === "jar_render_path" ? "jar" : "hero";
+  const storagePath = `${productId}/renders/${role}-${crypto.randomUUID()}.${extension}`;
+
+  const { data: current } = await supabase
+    .from("products")
+    .select(field)
+    .eq("id", productId)
+    .maybeSingle();
+
+  const { error: uploadError } = await supabase.storage
+    .from("product-images")
+    .upload(storagePath, file, { contentType: file.type, upsert: false });
+
+  if (uploadError) {
+    redirect(productAdminUrl(productId, uploadError.message));
+  }
+
+  const { error } = await supabase
+    .from("products")
+    .update({ [field]: storagePath, updated_at: new Date().toISOString() })
+    .eq("id", productId);
+
+  if (error) {
+    await supabase.storage.from("product-images").remove([storagePath]);
+    redirect(productAdminUrl(productId, error.message));
+  }
+
+  const previousPath = current?.[field] as string | null | undefined;
+  if (previousPath && previousPath !== storagePath) {
+    await supabase.storage.from("product-images").remove([previousPath]);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/shop");
+  revalidatePath("/admin/products");
+  redirect(productAdminUrl(productId));
+}
+
+export async function uploadJarRender(formData: FormData) {
+  return uploadVisualRender(formData, "jar_render_path");
+}
+
+export async function uploadHeroRender(formData: FormData) {
+  return uploadVisualRender(formData, "hero_render_path");
+}
+
+export async function clearVisualRender(formData: FormData) {
+  await requireAdmin();
+
+  const productId = z.string().uuid().parse(formData.get("productId"));
+  const field = z.enum(["jar_render_path", "hero_render_path"]).parse(formData.get("field"));
+  const supabase = await createClient();
+
+  const { data: product } = await supabase
+    .from("products")
+    .select(field)
+    .eq("id", productId)
+    .maybeSingle();
+
+  const currentPath = product?.[field] as string | null | undefined;
+
+  const { error } = await supabase
+    .from("products")
+    .update({ [field]: null, updated_at: new Date().toISOString() })
+    .eq("id", productId);
+
+  if (error) {
+    redirect(productAdminUrl(productId, error.message));
+  }
+
+  if (currentPath) {
+    await supabase.storage.from("product-images").remove([currentPath]);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/shop");
+  redirect(productAdminUrl(productId));
+}
+
 export async function uploadProductImage(formData: FormData) {
   await requireAdmin();
 
