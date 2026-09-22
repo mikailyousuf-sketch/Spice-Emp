@@ -15,6 +15,7 @@ const productSchema = z.object({
   productTypeId: z.string().uuid(),
   heatLevel: z.coerce.number().int().min(0).max(5),
   isActive: z.coerce.boolean(),
+  isFeatured: z.coerce.boolean(),
 });
 
 const variantSchema = z.object({
@@ -56,6 +57,7 @@ export async function updateProduct(formData: FormData) {
     productTypeId: formData.get("productTypeId"),
     heatLevel: formData.get("heatLevel"),
     isActive: formData.get("isActive") === "on",
+    isFeatured: formData.get("isFeatured") === "on",
   });
 
   if (!parsed.success) {
@@ -73,6 +75,7 @@ export async function updateProduct(formData: FormData) {
       product_type_id: parsed.data.productTypeId,
       heat_level: parsed.data.heatLevel,
       is_active: parsed.data.isActive,
+      is_featured: parsed.data.isFeatured,
       updated_at: new Date().toISOString(),
     })
     .eq("id", parsed.data.id);
@@ -81,6 +84,7 @@ export async function updateProduct(formData: FormData) {
     redirect(productAdminUrl(parsed.data.id, error.message));
   }
 
+  revalidatePath("/");
   revalidatePath("/shop");
   revalidatePath(`/spices/${parsed.data.slug}`);
   revalidatePath("/admin/products");
