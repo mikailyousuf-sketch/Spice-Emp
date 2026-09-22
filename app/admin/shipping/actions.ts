@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { PudoProvider } from "@/lib/shipping/pudo";
 
 const shippingSchema = z.object({
   name: z.string().trim().min(2).max(100),
@@ -108,4 +109,57 @@ export async function deleteShippingMethod(formData: FormData) {
   if (error) redirect(url(error.message));
   revalidatePath("/checkout");
   redirect(url());
+}
+
+
+export async function testCourierGuyConnection() {
+  await requireAdmin();
+
+  const token = process.env.COURIER_GUY_API_KEY?.trim();
+  if (!token) redirect("/admin/shipping?test=" + encodeURIComponent("Courier Guy API key is not configured."));
+
+  const base = (process.env.COURIER_GUY_API_BASE_URL || "https://api.shiplogic.com").replace(/\/$/, "");
+
+  try {
+    const response = await fetch(base + "/pickup-points?type=locker", {
+      headers: {
+        Authorization: "Bearer " + token,
+        Accept: "application/json",
+      },
+      cache: "no-store",
+    });
+
+    const raw = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      const message =
+        typeof raw?.message === "string"
+          ? raw.message
+          : typeof raw?.error === "string"
+            ? raw.error
+            : "Courier Guy authentication failed.";
+      redirect("/admin/shipping?test=" + encodeURIComponent(message));
+    }
+
+    redirect("/admin/shipping?test=" + encodeURIComponent("Courier Guy connection successful. API credentials were accepted."));
+  } catch (error) {
+    redirect("/admin/shipping?test=" + encodeURIComponent(
+      error instanceof Error ? error.message : "Courier Guy connection test failed.",
+    ));
+  }
+}
+
+export async function testPudoConnection() {
+  await requireAdmin();
+
+  try {
+    const lockers = await new PudoProvider().getLockers();
+    redirect("/admin/shipping?test=" + encodeURIComponent(
+      "PUDO connection successful. " + lockers.length + " lockers returned.",
+    ));
+  } catch (error) {
+    redirect("/admin/shipping?test=" + encodeURIComponent(
+      error instanceof Error ? error.message : "PUDO connection test failed.",
+    ));
+  }
 }
