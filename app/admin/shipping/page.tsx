@@ -2,17 +2,19 @@ import { createClient } from "@/lib/supabase/server";
 import {
   createShippingMethod,
   deleteShippingMethod,
+  testCourierGuyConnection,
+  testPudoConnection,
   updateShippingMethod,
 } from "./actions";
 
 type Props = {
-  searchParams: Promise<{ error?: string; saved?: string }>;
+  searchParams: Promise<{ error?: string; saved?: string; test?: string }>;
 };
 
 export const metadata = { title: "Shipping" };
 
 export default async function ShippingAdminPage({ searchParams }: Props) {
-  const { error, saved } = await searchParams;
+  const { error, saved, test } = await searchParams;
   const supabase = await createClient();
   const { data: methods } = await supabase
     .from("shipping_methods")
@@ -30,6 +32,64 @@ export default async function ShippingAdminPage({ searchParams }: Props) {
 
       {error ? <p className="mt-6 rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-red-100">{error}</p> : null}
       {saved ? <p className="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-emerald-100">Shipping updated.</p> : null}
+      {test ? <p className="mt-6 rounded-2xl border border-orange-300/20 bg-orange-300/10 p-4 text-orange-100">{test}</p> : null}
+
+      <section className="glass-soft mt-8 rounded-[2rem] p-6 sm:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-5">
+          <div>
+            <p className="display-font text-2xl font-semibold">Live courier connections</p>
+            <p className="mt-1 max-w-2xl text-sm text-stone-500">
+              These tests verify that the configured credentials can reach each courier API. No shipment is created.
+            </p>
+          </div>
+          <span className="admin-featured-badge">Diagnostics</span>
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="display-font text-xl font-semibold">The Courier Guy</p>
+                <p className="mt-1 text-xs text-stone-500">
+                  {process.env.COURIER_GUY_API_KEY ? "API key configured" : "API key missing"}
+                  {" · "}
+                  {process.env.COURIER_GUY_PROVIDER_ID ? "provider/account ID configured" : "provider/account ID not set"}
+                </p>
+              </div>
+              <span className={process.env.COURIER_GUY_API_KEY ? "text-emerald-300" : "text-amber-300"}>
+                {process.env.COURIER_GUY_API_KEY ? "●" : "○"}
+              </span>
+            </div>
+            <form action={testCourierGuyConnection} className="mt-4">
+              <button type="submit" className="btn-secondary">Test connection</button>
+            </form>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="display-font text-xl font-semibold">PUDO</p>
+                <p className="mt-1 text-xs text-stone-500">
+                  {process.env.PUDO_API_KEY ? "API key configured" : "API key missing"}
+                  {" · "}
+                  {process.env.PUDO_API_BASE_URL?.includes("sandbox") ? "sandbox" : "configured endpoint"}
+                </p>
+              </div>
+              <span className={process.env.PUDO_API_KEY ? "text-emerald-300" : "text-amber-300"}>
+                {process.env.PUDO_API_KEY ? "●" : "○"}
+              </span>
+            </div>
+            <form action={testPudoConnection} className="mt-4">
+              <button type="submit" className="btn-secondary">Test connection</button>
+            </form>
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-xl border border-white/10 bg-black/20 p-4 text-xs leading-6 text-stone-400">
+          Checkout now requests live Courier Guy/PUDO rates from the active cart and verifies the selected rate again server-side before payment.
+          Product variants must have shipping weight and dimensions for live quotes to work.
+        </div>
+      </section>
 
       <div className="mt-8 grid gap-5">
         {methods?.map((method) => (
