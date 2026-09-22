@@ -49,4 +49,26 @@ export interface ShippingProvider {
   readonly name: ShippingProviderName;
   getRates(input: QuoteInput): Promise<ShippingQuote[]>;
   getLockers?(): Promise<ShippingLocker[]>;
+  createShipment?(input: CreateShipmentInput): Promise<CreatedShipment>;
 }
+
+
+export type ShippingContact = {
+  name: string;
+  email: string;
+  phone: string;
+};
+
+export type CreateShipmentInput = QuoteInput & {
+  collectionContact: ShippingContact;
+  deliveryContact: ShippingContact;
+  serviceLevelCode: string;
+  customerReference: string;
+};
+
+export type CreatedShipment = {
+  providerShipmentId: string;
+  trackingReference: string | null;
+  labelUrl: string | null;
+  raw: unknown;
+};
