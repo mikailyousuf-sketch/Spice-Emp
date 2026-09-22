@@ -17,6 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link className="rounded-xl px-3 py-2 text-stone-300 hover:bg-white/5" href="/admin/inventory">Inventory</Link>
             <Link className="rounded-xl px-3 py-2 text-stone-300 hover:bg-white/5" href="/admin/taxonomy">Taxonomy</Link>
             <Link className="rounded-xl px-3 py-2 text-stone-300 hover:bg-white/5" href="/admin/orders">Orders</Link>
+            <Link className="rounded-xl px-3 py-2 text-stone-300 hover:bg-white/5" href="/admin/business">Wholesale</Link>
             <Link className="rounded-xl px-3 py-2 text-stone-300 hover:bg-white/5" href="/admin/shipping">Shipping</Link>
           </nav>
         </aside>
