@@ -77,6 +77,9 @@ Run the SQL files in order using the Supabase SQL editor, or link the Supabase C
 10. `supabase/migrations/0010_shipping.sql`
 11. `supabase/migrations/0011_shipping_providers.sql`
 12. `supabase/migrations/0012_product_visual_renders.sql`
+13. `supabase/migrations/0013_product_upload_limits.sql`
+14. `supabase/migrations/0014_assistant_queries.sql`
+15. `supabase/migrations/0015_business_enquiries.sql`
 
 Do not skip migration 0002. It creates profile/user-role automation and the admin write policies.
 Migration 0004 creates the public product-image Storage bucket and admin-only write policies.
@@ -85,10 +88,17 @@ Migration 0009 adds payment-attempt tracking for Yoco and Paystack.
 Migration 0010 adds configurable shipping methods and order shipping snapshots.
 Migration 0011 adds Courier Guy/PUDO shipping-provider support, shipment records and parcel dimensions on variants.
 Migration 0012 adds dedicated catalogue-jar and featured-hero render paths for premium generated product artwork.
+Migration 0013 aligns product-image Storage limits with the admin upload flow.
+Migration 0014 stores signed-in pantry-assistant query analytics.
+Migration 0015 adds wholesale/business quote enquiries and approval workflow.
 
 ## Courier Guy / PUDO
 
-The shipping layer supports Courier Guy door delivery and PUDO locker delivery through provider adapters. Configure the provider API keys and the Spice Emp collection/origin address in `.env.local`.
+The shipping layer supports live Courier Guy door delivery and PUDO locker delivery. Checkout requests live rates from the active cart and the selected rate is verified again server-side before payment.
+
+Paid courier orders are then submitted automatically to the selected provider. Failed shipment submissions remain visible in the Admin shipping queue and can be retried.
+
+Configure the provider API keys, Courier Guy account/provider ID where applicable, the collection/origin address, and the origin contact details in `.env.local`.
 
 Product variants require shipping weight, length, width and height before live courier rates can be requested.
 
@@ -96,6 +106,8 @@ The server endpoints are:
 
 - `GET /api/shipping/lockers` for PUDO locker data
 - `POST /api/shipping/quotes` for live courier quotes based on the active cart
+
+Admin users can test Courier Guy/PUDO API connectivity from `/admin/shipping`.
 
 ## Payment testing
 
@@ -167,3 +179,10 @@ The public `/shop` page reads active catalogue data from Supabase and supports m
 ## Security
 
 Never commit `.env.local`, the Supabase service role key, database password, AI keys or payment secrets.
+
+
+## Wholesale / business
+
+The public `/business` page supports business details, multi-product kilogram quote baskets, monthly-volume/frequency requirements and wholesale enquiries.
+
+Admins can review enquiries at `/admin/business`, update their status and approve linked users as business customers.
