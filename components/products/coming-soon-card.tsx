@@ -1,3 +1,5 @@
+import { ComingSoonJar } from "@/components/products/coming-soon-jar";
+
 type ComingSoonCardProps = {
   spice: {
     name: string;
@@ -11,11 +13,7 @@ export function ComingSoonCard({ spice }: ComingSoonCardProps) {
     <article className="coming-soon-card group text-center">
       <div className="coming-soon-visual">
         <span className="coming-soon-badge">Coming soon</span>
-        <img
-          src={spice.image}
-          alt={spice.name}
-          className="coming-soon-jar"
-        />
+        <ComingSoonJar name={spice.name} image={spice.image} className="coming-soon-card-jar" />
       </div>
 
       <h3 className="display-font mt-4 text-2xl italic tracking-[-.02em]">
