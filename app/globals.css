@@ -1049,3 +1049,34 @@ body::after {
     background-attachment: scroll !important;
   }
 }
+
+
+/* Guaranteed fixed marble layer */
+.marble-page-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #ded9d2;
+  background-image:
+    radial-gradient(circle at 88% 16%, rgba(126, 89, 180, .10), transparent 24rem),
+    radial-gradient(circle at 12% 76%, rgba(211, 138, 26, .07), transparent 25rem),
+    url("/backgrounds/marble-pantry-wall.webp");
+  background-position: center, center, center top;
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-size: auto, auto, cover;
+}
+
+.site-shell {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+}
+
+main,
+.hero-luxury,
+.dark-stone,
+.stone-section {
+  background-color: transparent !important;
+  background-image: none !important;
+}
