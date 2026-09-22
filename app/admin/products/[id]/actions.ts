@@ -317,7 +317,7 @@ async function uploadVisualRender(formData: FormData, field: "jar_render_path" |
 
   const { data: current } = await supabase
     .from("products")
-    .select(field)
+    .select("jar_render_path,hero_render_path")
     .eq("id", productId)
     .maybeSingle();
 
@@ -367,7 +367,7 @@ export async function clearVisualRender(formData: FormData) {
 
   const { data: product } = await supabase
     .from("products")
-    .select(field)
+    .select("jar_render_path,hero_render_path")
     .eq("id", productId)
     .maybeSingle();
 
