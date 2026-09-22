@@ -1,4 +1,4 @@
-export type ShippingProviderName = "courier_guy" | "pudo";
+export type ShippingProviderName = "courier_guy";
 
 export type ShippingAddress = {
   company?: string | null;
