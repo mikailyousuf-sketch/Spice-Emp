@@ -3,6 +3,7 @@ import type {
   CreateShipmentInput,
   CreatedShipment,
   QuoteInput,
+  ShippingLocker,
   ShippingProvider,
   ShippingQuote,
 } from "./types";
@@ -43,13 +44,27 @@ export class CourierGuyProvider implements ShippingProvider {
     return token;
   }
 
+  private getAccountCode() {
+    return (
+      process.env.COURIER_GUY_ACCOUNT_CODE?.trim()
+      || process.env.COURIER_GUY_PROVIDER_ID?.trim()
+      || ""
+    );
+  }
+
   private getBaseUrl() {
     return (process.env.COURIER_GUY_API_BASE_URL || "https://api.shiplogic.com").replace(/\/$/, "");
   }
 
   private getRatesPath() {
-    const configured = process.env.COURIER_GUY_RATES_PATH?.trim();
-    return configured || "/v2/rates";
+    return process.env.COURIER_GUY_RATES_PATH?.trim() || "/v2/rates";
+  }
+
+  private headers() {
+    return {
+      Authorization: "Bearer " + this.getToken(),
+      "Content-Type": "application/json",
+    };
   }
 
   private addressPayload(address: QuoteInput["collectionAddress"], type: "business" | "residential") {
@@ -78,21 +93,137 @@ export class CourierGuyProvider implements ShippingProvider {
     }));
   }
 
-  async createShipment(input: CreateShipmentInput): Promise<CreatedShipment> {
-    if (!input.deliveryAddress) {
-      throw new Error("A Courier Guy delivery address is required.");
+  async getLockers(): Promise<ShippingLocker[]> {
+    const response = await fetch(this.getBaseUrl() + "/pickup-points?type=locker", {
+      headers: this.headers(),
+      cache: "no-store",
+    });
+
+    const raw = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(
+        typeof raw?.message === "string"
+          ? raw.message
+          : typeof raw?.error === "string"
+            ? raw.error
+            : "Could not load The Courier Guy lockers.",
+      );
     }
 
-    const providerId = process.env.COURIER_GUY_PROVIDER_ID?.trim();
+    const list = Array.isArray(raw)
+      ? raw
+      : Array.isArray(raw?.pickup_points)
+        ? raw.pickup_points
+        : Array.isArray(raw?.data)
+          ? raw.data
+          : [];
+
+    return list.flatMap((locker: Record<string, unknown>) => {
+      const code = locker.pickup_point_id ?? locker.id ?? locker.code;
+      const name =
+        locker.name
+        ?? locker.company
+        ?? locker.display_name
+        ?? locker.address;
+
+      if (code == null || name == null) return [];
+
+      const latValue = locker.lat ?? locker.latitude;
+      const lngValue = locker.lng ?? locker.longitude;
+
+      return [{
+        code: String(code),
+        name: String(name),
+        latitude: latValue == null ? null : Number(latValue),
+        longitude: lngValue == null ? null : Number(lngValue),
+        openingHours: locker.opening_hours ?? locker.openinghours ?? null,
+      }];
+    });
+  }
+
+  async getRates(input: QuoteInput): Promise<ShippingQuote[]> {
+    if (!input.deliveryLockerCode && !input.deliveryAddress) {
+      throw new Error("A delivery address or Courier Guy locker is required.");
+    }
+
+    const accountCode = this.getAccountCode();
+
     const body = {
-      ...(providerId ? { provider_id: providerId } : {}),
+      ...(accountCode ? { provider_id: accountCode } : {}),
+      collection_address: this.addressPayload(input.collectionAddress, "business"),
+      ...(input.deliveryLockerCode
+        ? {
+            delivery_pickup_point_id: input.deliveryLockerCode,
+            delivery_pickup_point_provider: "tcg-locker",
+          }
+        : {
+            delivery_address: this.addressPayload(input.deliveryAddress!, "residential"),
+          }),
+      parcels: this.parcelPayload(input),
+    };
+
+    const response = await fetch(this.getBaseUrl() + this.getRatesPath(), {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+
+    const raw = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(
+        typeof raw?.message === "string"
+          ? raw.message
+          : typeof raw?.error === "string"
+            ? raw.error
+            : "Courier Guy rate request failed.",
+      );
+    }
+
+    const rates: ShiplogicRate[] = Array.isArray(raw) ? raw : raw?.rates ?? [];
+
+    return rates.flatMap((rate) => {
+      const code = rate.service_level?.code ?? rate.service_level_code;
+      const name = rate.service_level?.name ?? rate.service_level_name ?? code;
+      const amount = Number(rate.rate ?? rate.total);
+
+      if (!code || !name || !Number.isFinite(amount)) return [];
+
+      return [{
+        provider: this.name,
+        serviceLevelCode: code,
+        serviceName: name,
+        rateCents: Math.round(amount * 100),
+        raw: rate,
+      }];
+    });
+  }
+
+  async createShipment(input: CreateShipmentInput): Promise<CreatedShipment> {
+    if (!input.deliveryLockerCode && !input.deliveryAddress) {
+      throw new Error("A delivery address or Courier Guy locker is required.");
+    }
+
+    const accountCode = this.getAccountCode();
+
+    const body = {
+      ...(accountCode ? { provider_id: accountCode } : {}),
       collection_address: this.addressPayload(input.collectionAddress, "business"),
       collection_contact: {
         name: input.collectionContact.name,
         email: input.collectionContact.email,
         mobile_number: input.collectionContact.phone,
       },
-      delivery_address: this.addressPayload(input.deliveryAddress, "residential"),
+      ...(input.deliveryLockerCode
+        ? {
+            delivery_pickup_point_id: input.deliveryLockerCode,
+            delivery_pickup_point_provider: "tcg-locker",
+          }
+        : {
+            delivery_address: this.addressPayload(input.deliveryAddress!, "residential"),
+          }),
       delivery_contact: {
         name: input.deliveryContact.name,
         email: input.deliveryContact.email,
@@ -105,10 +236,7 @@ export class CourierGuyProvider implements ShippingProvider {
 
     const response = await fetch(this.getBaseUrl() + "/v2/shipments", {
       method: "POST",
-      headers: {
-        Authorization: "Bearer " + this.getToken(),
-        "Content-Type": "application/json",
-      },
+      headers: this.headers(),
       body: JSON.stringify(body),
       cache: "no-store",
     });
@@ -146,60 +274,5 @@ export class CourierGuyProvider implements ShippingProvider {
             : null,
       raw,
     };
-  }
-
-  async getRates(input: QuoteInput): Promise<ShippingQuote[]> {
-    if (!input.deliveryAddress) {
-      throw new Error("A Courier Guy delivery address is required.");
-    }
-
-    const providerId = process.env.COURIER_GUY_PROVIDER_ID?.trim();
-
-    const body = {
-      ...(providerId ? { provider_id: providerId } : {}),
-      collection_address: this.addressPayload(input.collectionAddress, "business"),
-      delivery_address: this.addressPayload(input.deliveryAddress, "residential"),
-      parcels: this.parcelPayload(input),
-    };
-
-    const response = await fetch(this.getBaseUrl() + this.getRatesPath(), {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + this.getToken(),
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-      cache: "no-store",
-    });
-
-    const raw = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      throw new Error(
-        typeof raw?.message === "string"
-          ? raw.message
-          : typeof raw?.error === "string"
-            ? raw.error
-            : "Courier Guy rate request failed.",
-      );
-    }
-
-    const rates: ShiplogicRate[] = Array.isArray(raw) ? raw : raw?.rates ?? [];
-
-    return rates.flatMap((rate) => {
-      const code = rate.service_level?.code ?? rate.service_level_code;
-      const name = rate.service_level?.name ?? rate.service_level_name ?? code;
-      const amount = Number(rate.rate ?? rate.total);
-
-      if (!code || !name || !Number.isFinite(amount)) return [];
-
-      return [{
-        provider: this.name,
-        serviceLevelCode: code,
-        serviceName: name,
-        rateCents: Math.round(amount * 100),
-        raw: rate,
-      }];
-    });
   }
 }
