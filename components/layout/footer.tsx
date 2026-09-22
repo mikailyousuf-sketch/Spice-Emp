@@ -5,7 +5,7 @@ export function Footer() {
     <footer className="border-t border-white/10 bg-[#0d0c0b] text-white">
       <div className="section-wrap grid gap-10 py-12 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
-          <img src="/branding/glided-wordmark.webp" alt="The Glided Pantry" className="w-64" />
+          <img src="/branding/glided-wordmark.svg" alt="The Glided Pantry" className="footer-brand-image" />
           <p className="mt-5 max-w-md text-sm leading-6 text-white/45">
             Premium spices, global flavour, and a pantry built around the way you cook.
           </p>
