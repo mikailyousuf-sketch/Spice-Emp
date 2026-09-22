@@ -36,12 +36,16 @@ export default async function HomePage() {
           </aside>
 
           <div className="pantry-hero-copy">
-            <p className="pantry-kicker">Premium spices</p>
+            <p className="pantry-kicker">The Glided Pantry · South Africa</p>
             <h1>A more flavourful pantry.</h1>
             <p className="pantry-subline">
-              Simple ingredients <b>·</b> Brighter meals <b>·</b> A more beautiful everyday
+              Global spice <b>·</b> Better cooking <b>·</b> Beautifully simple
             </p>
             <span className="pantry-gold-dash" />
+            <div className="pantry-hero-actions">
+              <Link href="/shop" className="pantry-hero-primary">Explore the pantry</Link>
+              <Link href="/business" className="pantry-hero-secondary">For business</Link>
+            </div>
           </div>
 
           <div className="pantry-display">
@@ -74,22 +78,22 @@ export default async function HomePage() {
             <div className="pantry-benefit">
               <span className="pantry-benefit-icon">◌</span>
               <div>
-                <strong>Pure ingredients</strong>
-                <p>Nothing artificial. Ever.</p>
+                <strong>Curated pantry</strong>
+                <p>A growing collection for everyday cooking.</p>
               </div>
             </div>
             <div className="pantry-benefit">
               <span className="pantry-benefit-icon">◇</span>
               <div>
-                <strong>Premium quality</strong>
-                <p>Spices that inspire.</p>
+                <strong>Cook by flavour</strong>
+                <p>Discover by dish, cuisine, heat and method.</p>
               </div>
             </div>
             <div className="pantry-benefit">
-              <span className="pantry-benefit-icon">♡</span>
+              <span className="pantry-benefit-icon">↗</span>
               <div>
-                <strong>A brighter everyday</strong>
-                <p>More flavour. A better table.</p>
+                <strong>Retail + wholesale</strong>
+                <p>From home kitchens to busy food businesses.</p>
               </div>
             </div>
           </div>
