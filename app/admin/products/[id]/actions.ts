@@ -401,8 +401,8 @@ export async function uploadProductImage(formData: FormData) {
     redirect(productAdminUrl(productId, "Choose an image to upload."));
   }
 
-  if (file.size > 5 * 1024 * 1024) {
-    redirect(productAdminUrl(productId, "Images must be 5MB or smaller."));
+  if (file.size > 8 * 1024 * 1024) {
+    redirect(productAdminUrl(productId, "Images must be 8MB or smaller."));
   }
 
   const allowed = new Map([
