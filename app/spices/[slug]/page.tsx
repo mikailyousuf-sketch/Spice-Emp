@@ -187,6 +187,24 @@ export default async function SpicePage({ params, searchParams }: Props) {
               </div>
             </div>
 
+            <div className="pantry-product-service">
+              <div>
+                <span>01</span>
+                <strong>Selected for the pantry</strong>
+                <p>Clear sizing, stock and pricing from the live catalogue.</p>
+              </div>
+              <div>
+                <span>02</span>
+                <strong>Built for everyday cooking</strong>
+                <p>Use the tags above to explore the dishes, flavours and methods it suits.</p>
+              </div>
+              <div>
+                <span>03</span>
+                <strong>Need more?</strong>
+                <p>Business and bulk ordering are available through our wholesale flow.</p>
+              </div>
+            </div>
+
             <div className="pantry-product-notes">
               <p>Delivery options are calculated at checkout.</p>
               <Link href="/business">Need larger quantities? Visit wholesale →</Link>
