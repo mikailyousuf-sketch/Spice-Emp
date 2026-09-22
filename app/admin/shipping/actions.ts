@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PudoProvider } from "@/lib/shipping/pudo";
+import { createShipmentForPaidOrder } from "@/lib/shipping/fulfilment";
 
 const shippingSchema = z.object({
   name: z.string().trim().min(2).max(100),
@@ -160,5 +161,24 @@ export async function testPudoConnection() {
     message = error instanceof Error ? error.message : "PUDO connection test failed.";
   }
 
+  redirect("/admin/shipping?test=" + encodeURIComponent(message));
+}
+
+
+export async function retryPaidOrderShipment(formData: FormData) {
+  await requireAdmin();
+  const orderId = z.string().uuid().parse(formData.get("orderId"));
+
+  let message = "";
+  try {
+    const result = await createShipmentForPaidOrder(orderId);
+    message = result
+      ? "Shipment submitted successfully."
+      : "This order does not require a courier shipment.";
+  } catch (error) {
+    message = error instanceof Error ? error.message : "Shipment retry failed.";
+  }
+
+  revalidatePath("/admin/shipping");
   redirect("/admin/shipping?test=" + encodeURIComponent(message));
 }
