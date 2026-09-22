@@ -38,8 +38,8 @@ export default async function SpicePage({ params, searchParams }: Props) {
   const primaryImageUrl = getProductImageUrl(primaryImage?.storage_path);
   const jarRenderUrl = getProductImageUrl(product.jar_render_path ?? null);
   const heroRenderUrl = getProductImageUrl(product.hero_render_path ?? null);
-  const primaryVisual = heroRenderUrl || jarRenderUrl || primaryImageUrl;
-  const premiumVisual = Boolean(heroRenderUrl || jarRenderUrl);
+  const primaryVisual = primaryImageUrl || heroRenderUrl || jarRenderUrl;
+  const premiumVisual = !primaryImageUrl && Boolean(heroRenderUrl || jarRenderUrl);
 
   const relationNames = (value: Array<{ name: string }> | null | undefined) =>
     (value ?? []).map((item) => item.name);
