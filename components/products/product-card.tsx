@@ -25,6 +25,7 @@ type ProductCardProps = {
     slug: string;
     short_description: string | null;
     heat_level: number;
+    jar_render_path?: string | null;
     product_variants: Variant[] | null;
     product_images: ProductImage[] | null;
   };
@@ -38,20 +39,29 @@ export function ProductCard({ product }: ProductCardProps) {
   );
   const image = images[0];
   const imageUrl = getProductImageUrl(image?.storage_path);
+  const jarRenderUrl = getProductImageUrl(product.jar_render_path ?? null);
 
   return (
     <article className="product-card group">
       <Link href={`/spices/${product.slug}`} className="block">
         <div className="product-visual">
           <div className="product-plinth" />
-          <div className="product-jar">
-            <div className="jar-lid" />
-            {imageUrl ? <img src={imageUrl} alt={image?.alt_text || product.name} className="jar-image" /> : <div className="jar-fallback" />}
-            <div className="jar-label">
-              <span className="jar-label-brand">The Glided Pantry</span>
-              <span className="jar-label-name">{product.name}</span>
+          {jarRenderUrl ? (
+            <img
+              src={jarRenderUrl}
+              alt={product.name}
+              className="relative z-[2] mb-2 h-[20rem] w-full object-contain transition duration-300 group-hover:-translate-y-2"
+            />
+          ) : (
+            <div className="product-jar">
+              <div className="jar-lid" />
+              {imageUrl ? <img src={imageUrl} alt={image?.alt_text || product.name} className="jar-image" /> : <div className="jar-fallback" />}
+              <div className="jar-label">
+                <span className="jar-label-brand">The Glided Pantry</span>
+                <span className="jar-label-name">{product.name}</span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
         <h2 className="product-name">{product.name}</h2>
         <p className="product-price">{cheapest ? `R${(cheapest.retail_price_cents/100).toFixed(2)}` : "Out of stock"}</p>
