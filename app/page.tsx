@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ComingSoonJar } from "@/components/products/coming-soon-jar";
 import { ProductCard } from "@/components/products/product-card";
 import { comingSoonSpices } from "@/lib/coming-soon";
 import { createClient } from "@/lib/supabase/server";
@@ -49,9 +50,7 @@ export default async function HomePage() {
               {comingSoonSpices.map((spice) => (
                 <article className="pantry-display-item" key={spice.name}>
                   <div className="pantry-jar-zone">
-                    <img src={spice.image} alt={spice.name} className="pantry-display-jar pantry-jar-screen" />
-                    <img src={spice.image} alt="" aria-hidden="true" className="pantry-display-jar pantry-jar-detail pantry-jar-lid-detail" />
-                    <img src={spice.image} alt="" aria-hidden="true" className="pantry-display-jar pantry-jar-detail pantry-jar-label-detail" />
+                    <ComingSoonJar name={spice.name} image={spice.image} className="pantry-home-jar" />
                   </div>
                   <div className="pantry-product-copy">
                     <h2>{spice.name}</h2>
