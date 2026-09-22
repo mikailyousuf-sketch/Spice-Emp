@@ -1,16 +1,7 @@
 import Link from "next/link";
-import { ComingSoonCard } from "@/components/products/coming-soon-card";
 import { ProductCard } from "@/components/products/product-card";
 import { comingSoonSpices } from "@/lib/coming-soon";
-import { getProductImageUrl } from "@/lib/products/image-url";
 import { createClient } from "@/lib/supabase/server";
-
-const discovery = [
-  { href: "/shop", title: "By Cuisine", note: "Explore flavours", icon: "◎" },
-  { href: "/shop", title: "By Dish", note: "Find your pairing", icon: "⋮" },
-  { href: "/shop", title: "By Flavour", note: "Bold to refined", icon: "✧" },
-  { href: "/shop", title: "By Heat", note: "Mild to extra hot", icon: "⌁" },
-];
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -23,149 +14,109 @@ export default async function HomePage() {
     `)
     .eq("is_active", true)
     .order("created_at", { ascending: false })
-    .limit(8);
-
-  const heroProduct = latestProducts?.[0];
-  const heroImage = heroProduct
-    ? [...(heroProduct.product_images ?? [])].sort(
-        (a,b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order,
-      )[0]
-    : null;
-  const heroImageUrl =
-    getProductImageUrl(heroProduct?.hero_render_path ?? null) ||
-    getProductImageUrl(heroProduct?.jar_render_path ?? null) ||
-    getProductImageUrl(heroImage?.storage_path);
+    .limit(4);
 
   return (
-    <main>
-      <section className="hero-luxury">
-        <div className="section-wrap grid min-h-[100svh] items-center gap-6 pb-24 pt-32 lg:grid-cols-[.9fr_1.1fr]">
-          <div className="relative z-10 max-w-2xl">
-            <p className="micro-label">Exceptional spices for a more flavourful world</p>
-            <h1 className="hero-title mt-6">
-              More flavour.
-              <span className="block text-white/62">A richer story.</span>
-            </h1>
-            <p className="hero-copy mt-7">
-              Premium spices, global flavours, and a pantry built around the way you actually cook.
+    <main className="pantry-home">
+      <section className="pantry-stage">
+        <div className="pantry-stage-inner">
+          <aside className="pantry-side-note pantry-side-note-left" aria-hidden="true">
+            <span>Simple</span>
+            <span>ingredients</span>
+            <span>extraordinary</span>
+            <span>moments</span>
+            <i />
+          </aside>
+
+          <aside className="pantry-side-note pantry-side-note-right" aria-hidden="true">
+            <span>Spices</span>
+            <span>elevate</span>
+            <span>everyday</span>
+            <i />
+          </aside>
+
+          <div className="pantry-hero-copy">
+            <p className="pantry-kicker">Premium spices</p>
+            <h1>A more flavourful pantry.</h1>
+            <p className="pantry-subline">
+              Simple ingredients <b>·</b> Brighter meals <b>·</b> A more beautiful everyday
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/shop" className="btn-primary">Shop spices →</Link>
-              <Link href="/about" className="btn-secondary">Our story</Link>
+            <span className="pantry-gold-dash" />
+          </div>
+
+          <div className="pantry-display">
+            <div className="pantry-jar-grid">
+              {comingSoonSpices.map((spice) => (
+                <article className="pantry-display-item" key={spice.name}>
+                  <div className="pantry-jar-zone">
+                    <img src={spice.image} alt={spice.name} className="pantry-display-jar" />
+                  </div>
+                  <div className="pantry-product-copy">
+                    <h2>{spice.name}</h2>
+                    <span>Coming soon</span>
+                  </div>
+                </article>
+              ))}
             </div>
 
-            <div className="mt-14 flex flex-wrap gap-x-8 gap-y-3 text-[10px] font-semibold uppercase tracking-[.24em] text-white/38">
-              <span>People</span>
-              <span>Places</span>
-              <span>Flavours</span>
-              <span>A brighter table</span>
+            <div className="pantry-glass-shelf" aria-hidden="true">
+              <div className="pantry-shelf-glass" />
+              <div className="pantry-shelf-chrome" />
+              <div className="pantry-shelf-shadow" />
             </div>
           </div>
 
-          <div className="hero-jar-wrap">
-            <div className="hero-jar">
-              <div className="jar-lid" />
-              {heroImageUrl ? (
-                <img src={heroImageUrl} alt={heroImage?.alt_text || heroProduct?.name || "Featured spice"} className="hero-jar-image" />
-              ) : (
-                <div className="hero-jar-fill" />
-              )}
-              <div className="hero-jar-label">
-                <span className="block text-[10px] font-semibold uppercase tracking-[.28em] text-white/45">The Glided Pantry</span>
-                <span className="display-font mt-3 block text-3xl italic">
-                  {heroProduct?.name || "Signature Spice"}
-                </span>
-                <span className="mt-2 block text-[9px] uppercase tracking-[.2em] text-white/45">
-                  Pure · Rare · Remarkable
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="glass-nav-strip">
-        {discovery.map((item) => (
-          <Link href={item.href} className="glass-nav-item group" key={item.title}>
-            <div className="flex items-center gap-3">
-              <span className="text-xl text-white/70">{item.icon}</span>
+          <div className="pantry-benefits">
+            <div className="pantry-benefit">
+              <span className="pantry-benefit-icon">◌</span>
               <div>
-                <p className="display-font text-xl italic">{item.title}</p>
-                <p className="mt-1 text-[9px] font-semibold uppercase tracking-[.18em] text-white/42">{item.note}</p>
+                <strong>Pure ingredients</strong>
+                <p>Nothing artificial. Ever.</p>
               </div>
-              <span className="ml-auto text-white/30 transition group-hover:translate-x-1">→</span>
             </div>
-          </Link>
-        ))}
-      </div>
-
-      <section className="dark-stone relative py-24 sm:py-32">
-        <div className="section-wrap relative z-10">
-          <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
-            <div>
-              <p className="micro-label">First jars</p>
-              <h2 className="catalogue-heading mt-4 max-w-3xl">Coming to the pantry.</h2>
+            <div className="pantry-benefit">
+              <span className="pantry-benefit-icon">◇</span>
+              <div>
+                <strong>Premium quality</strong>
+                <p>Spices that inspire.</p>
+              </div>
             </div>
-            <span className="text-[10px] font-semibold uppercase tracking-[.2em] text-white/35">
-              Preview collection
-            </span>
+            <div className="pantry-benefit">
+              <span className="pantry-benefit-icon">♡</span>
+              <div>
+                <strong>A brighter everyday</strong>
+                <p>More flavour. A better table.</p>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-8 grid gap-x-4 gap-y-16 sm:grid-cols-2 lg:grid-cols-4">
-            {comingSoonSpices.map((spice) => (
-              <ComingSoonCard key={spice.name} spice={spice} />
-            ))}
+          <div className="pantry-stage-footer">
+            <span />
+            <p>Good food lives here</p>
+            <span />
           </div>
         </div>
       </section>
 
       {latestProducts?.length ? (
-        <section className="dark-stone relative py-24 sm:py-32">
-          <div className="section-wrap relative z-10">
-            <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
+        <section className="pantry-real-products">
+          <div className="section-wrap">
+            <div className="pantry-section-head">
               <div>
-                <p className="micro-label">The shelf</p>
-                <h2 className="catalogue-heading mt-4 max-w-3xl">Start with the jar.</h2>
+                <p className="pantry-kicker">The pantry</p>
+                <h2>Ready when you are.</h2>
               </div>
-              <Link href="/shop" className="btn-secondary w-fit">View all →</Link>
+              <Link href="/shop" className="pantry-text-link">View all spices →</Link>
             </div>
 
-            <div className="mt-8 grid gap-x-4 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {latestProducts.slice(0,4).map((product) => (
+            <div className="mt-8 grid gap-x-4 gap-y-16 sm:grid-cols-2 lg:grid-cols-4">
+              {latestProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
           </div>
         </section>
       ) : null}
-
-      <section className="stone-section py-24 sm:py-28">
-        <div className="section-wrap relative z-10 grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-center">
-          <div>
-            <p className="micro-label !text-black/45">More than spices</p>
-            <h2 className="display-font mt-4 max-w-xl text-6xl leading-[.88] tracking-[-.04em] text-[#171513]">
-              A deeper connection to flavour.
-            </h2>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div className="border-l border-black/15 pl-6">
-              <p className="text-sm leading-7 text-black/55">
-                Sourced from remarkable places. Chosen for a more flavourful life.
-              </p>
-              <Link href="/about" className="mt-5 inline-flex text-xs font-bold uppercase tracking-[.18em] text-black">
-                Our story →
-              </Link>
-            </div>
-            <div className="rounded-[2rem] bg-[#191614] p-7 text-white shadow-2xl">
-              <p className="micro-label">Pantry intelligence</p>
-              <p className="display-font mt-4 text-4xl leading-none">Tell us what you&apos;re cooking.</p>
-              <Link href="/assistant" className="mt-7 inline-flex text-xs font-bold uppercase tracking-[.18em]">
-                Ask the pantry →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }
