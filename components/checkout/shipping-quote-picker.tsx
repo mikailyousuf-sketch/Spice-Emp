@@ -11,7 +11,7 @@ type CollectionMethod = {
 };
 
 type Quote = {
-  provider: "courier_guy" | "pudo";
+  provider: "courier_guy";
   serviceLevelCode: string;
   serviceName: string;
   rateCents: number;
@@ -33,7 +33,7 @@ export function ShippingQuotePicker({
 }) {
   const [choiceType, setChoiceType] = useState<"manual" | "live" | "">("");
   const [shippingMethodId, setShippingMethodId] = useState("");
-  const [provider, setProvider] = useState<"courier_guy" | "pudo">("courier_guy");
+  const [deliveryMode, setDeliveryMode] = useState<"door" | "locker">("door");
   const [serviceLevelCode, setServiceLevelCode] = useState("");
   const [lockerCode, setLockerCode] = useState("");
   const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -61,13 +61,16 @@ export function ShippingQuotePicker({
     if (lockers.length) return;
     setLockerLoading(true);
     setError("");
+
     try {
       const response = await fetch("/api/shipping/lockers", { cache: "no-store" });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "Could not load PUDO lockers.");
+      if (!response.ok) {
+        throw new Error(payload.error || "Could not load Courier Guy lockers.");
+      }
       setLockers(payload.lockers ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load PUDO lockers.");
+      setError(err instanceof Error ? err.message : "Could not load Courier Guy lockers.");
     } finally {
       setLockerLoading(false);
     }
@@ -84,13 +87,13 @@ export function ShippingQuotePicker({
     const postalCode = String(data.get("postalCode") || "").trim();
     const province = String(data.get("province") || "").trim();
 
-    if (provider === "courier_guy" && (!streetAddress || !city || !postalCode || !province)) {
+    if (deliveryMode === "door" && (!streetAddress || !city || !postalCode || !province)) {
       setError("Enter the delivery address above before requesting Courier Guy rates.");
       return;
     }
 
-    if (provider === "pudo" && !lockerCode) {
-      setError("Choose a PUDO locker before requesting rates.");
+    if (deliveryMode === "locker" && !lockerCode) {
+      setError("Choose a Courier Guy locker before requesting rates.");
       return;
     }
 
@@ -105,10 +108,13 @@ export function ShippingQuotePicker({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          provider === "pudo"
-            ? { provider, deliveryLockerCode: lockerCode }
+          deliveryMode === "locker"
+            ? {
+                deliveryMode,
+                deliveryLockerCode: lockerCode,
+              }
             : {
-                provider,
+                deliveryMode,
                 deliveryAddress: {
                   streetAddress,
                   suburb,
@@ -122,14 +128,16 @@ export function ShippingQuotePicker({
       });
 
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "Could not load courier rates.");
+      if (!response.ok) {
+        throw new Error(payload.error || "Could not load Courier Guy rates.");
+      }
 
       setQuotes(payload.quotes ?? []);
       if (!(payload.quotes ?? []).length) {
-        setError("No live courier rates were returned for this basket and destination.");
+        setError("No live Courier Guy rates were returned for this basket and destination.");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load courier rates.");
+      setError(err instanceof Error ? err.message : "Could not load Courier Guy rates.");
     } finally {
       setLoading(false);
     }
@@ -145,7 +153,6 @@ export function ShippingQuotePicker({
   function selectQuote(quote: Quote) {
     setChoiceType("live");
     setShippingMethodId("");
-    setProvider(quote.provider);
     setServiceLevelCode(quote.serviceLevelCode);
   }
 
@@ -153,16 +160,21 @@ export function ShippingQuotePicker({
     <div className="live-shipping-picker">
       <input type="hidden" name="shippingChoiceType" value={choiceType} />
       <input type="hidden" name="shippingMethodId" value={shippingMethodId} />
-      <input type="hidden" name="shippingProvider" value={choiceType === "live" ? provider : ""} />
+      <input type="hidden" name="shippingProvider" value={choiceType === "live" ? "courier_guy" : ""} />
+      <input type="hidden" name="shippingDeliveryMode" value={choiceType === "live" ? deliveryMode : ""} />
       <input type="hidden" name="shippingServiceLevelCode" value={serviceLevelCode} />
-      <input type="hidden" name="shippingLockerCode" value={choiceType === "live" && provider === "pudo" ? lockerCode : ""} />
+      <input
+        type="hidden"
+        name="shippingLockerCode"
+        value={choiceType === "live" && deliveryMode === "locker" ? lockerCode : ""}
+      />
 
       <div className="live-shipping-tabs">
         <button
           type="button"
-          className={provider === "courier_guy" ? "is-active" : ""}
+          className={deliveryMode === "door" ? "is-active" : ""}
           onClick={() => {
-            setProvider("courier_guy");
+            setDeliveryMode("door");
             setQuotes([]);
             setChoiceType("");
             setServiceLevelCode("");
@@ -171,11 +183,12 @@ export function ShippingQuotePicker({
           Door delivery
           <small>The Courier Guy</small>
         </button>
+
         <button
           type="button"
-          className={provider === "pudo" ? "is-active" : ""}
+          className={deliveryMode === "locker" ? "is-active" : ""}
           onClick={() => {
-            setProvider("pudo");
+            setDeliveryMode("locker");
             setQuotes([]);
             setChoiceType("");
             setServiceLevelCode("");
@@ -183,20 +196,21 @@ export function ShippingQuotePicker({
           }}
         >
           Locker delivery
-          <small>PUDO</small>
+          <small>The Courier Guy locker network</small>
         </button>
       </div>
 
-      {provider === "pudo" ? (
+      {deliveryMode === "locker" ? (
         <div className="live-locker-picker">
           <input
             type="search"
             value={lockerSearch}
             onChange={(event) => setLockerSearch(event.target.value)}
             onFocus={() => void loadLockers()}
-            placeholder={lockerLoading ? "Loading lockers…" : "Search locker by name or code"}
+            placeholder={lockerLoading ? "Loading lockers…" : "Search Courier Guy locker"}
             className="field"
           />
+
           <select
             value={lockerCode}
             onChange={(event) => {
@@ -207,7 +221,7 @@ export function ShippingQuotePicker({
             className="field"
             disabled={lockerLoading}
           >
-            <option value="">Choose a PUDO locker</option>
+            <option value="">Choose a Courier Guy locker</option>
             {filteredLockers.map((locker) => (
               <option key={locker.code} value={locker.code}>
                 {locker.name} · {locker.code}
@@ -217,8 +231,13 @@ export function ShippingQuotePicker({
         </div>
       ) : null}
 
-      <button type="button" onClick={() => void getLiveQuotes()} className="live-rate-button" disabled={loading}>
-        {loading ? "Checking live rates…" : "Get live courier rates"}
+      <button
+        type="button"
+        onClick={() => void getLiveQuotes()}
+        className="live-rate-button"
+        disabled={loading}
+      >
+        {loading ? "Checking live rates…" : "Get Courier Guy rates"}
       </button>
 
       {error ? <p className="live-shipping-error">{error}</p> : null}
@@ -227,14 +246,14 @@ export function ShippingQuotePicker({
         <div className="live-rate-list">
           {quotes.map((quote) => (
             <button
-              key={quote.provider + quote.serviceLevelCode}
+              key={quote.serviceLevelCode}
               type="button"
               onClick={() => selectQuote(quote)}
               className={choiceType === "live" && serviceLevelCode === quote.serviceLevelCode ? "is-selected" : ""}
             >
               <span>
                 <strong>{quote.serviceName}</strong>
-                <small>{quote.provider === "pudo" ? "PUDO locker" : "The Courier Guy"}</small>
+                <small>{deliveryMode === "locker" ? "Courier Guy locker" : "Courier Guy door delivery"}</small>
               </span>
               <b>R{(quote.rateCents / 100).toFixed(2)}</b>
             </button>
@@ -244,7 +263,7 @@ export function ShippingQuotePicker({
 
       {collectionMethods.length ? (
         <div className="collection-options">
-          <span>Or collect</span>
+          <span>Or collect from us</span>
           {collectionMethods.map((method) => {
             const fee =
               method.free_above_cents != null && subtotalCents >= method.free_above_cents
@@ -270,7 +289,7 @@ export function ShippingQuotePicker({
       ) : null}
 
       <p className="live-shipping-note">
-        Live rates are calculated from your basket weight and dimensions. The selected rate is checked again before payment.
+        Door and locker rates both come from The Courier Guy. The selected rate is checked again before payment.
       </p>
     </div>
   );
