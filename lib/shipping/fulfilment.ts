@@ -123,6 +123,21 @@ export async function createShipmentForPaidOrder(orderId: string) {
     throw new Error("Shipment service level is missing.");
   }
 
+  const { data: claimed } = await admin
+    .from("shipments")
+    .update({
+      status: "submitted",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", shipment.id)
+    .in("status", ["draft", "failed"])
+    .select("id")
+    .maybeSingle();
+
+  if (!claimed) {
+    return shipment;
+  }
+
   const { data: order, error: orderError } = await admin
     .from("orders")
     .select(\`
