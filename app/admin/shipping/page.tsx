@@ -3,7 +3,6 @@ import {
   createShippingMethod,
   deleteShippingMethod,
   testCourierGuyConnection,
-  testPudoConnection,
   retryPaidOrderShipment,
   updateShippingMethod,
 } from "./actions";
@@ -54,48 +53,32 @@ export default async function ShippingAdminPage({ searchParams }: Props) {
           <span className="admin-featured-badge">Diagnostics</span>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="display-font text-xl font-semibold">The Courier Guy</p>
-                <p className="mt-1 text-xs text-stone-500">
-                  {process.env.COURIER_GUY_API_KEY ? "API key configured" : "API key missing"}
-                  {" · "}
-                  {process.env.COURIER_GUY_PROVIDER_ID ? "provider/account ID configured" : "provider/account ID not set"}
-                </p>
-              </div>
-              <span className={process.env.COURIER_GUY_API_KEY ? "text-emerald-300" : "text-amber-300"}>
-                {process.env.COURIER_GUY_API_KEY ? "●" : "○"}
-              </span>
+        <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="display-font text-xl font-semibold">The Courier Guy</p>
+              <p className="mt-1 text-xs text-stone-500">
+                {process.env.COURIER_GUY_API_KEY ? "API key configured" : "API key missing"}
+                {" · "}
+                {(process.env.COURIER_GUY_ACCOUNT_CODE || process.env.COURIER_GUY_PROVIDER_ID)
+                  ? "account code configured"
+                  : "account code not set"}
+              </p>
+              <p className="mt-2 text-xs leading-5 text-stone-500">
+                Door delivery and Courier Guy locker delivery use this same connection.
+              </p>
             </div>
-            <form action={testCourierGuyConnection} className="mt-4">
-              <button type="submit" className="btn-secondary">Test connection</button>
-            </form>
+            <span className={process.env.COURIER_GUY_API_KEY ? "text-emerald-300" : "text-amber-300"}>
+              {process.env.COURIER_GUY_API_KEY ? "●" : "○"}
+            </span>
           </div>
-
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="display-font text-xl font-semibold">PUDO</p>
-                <p className="mt-1 text-xs text-stone-500">
-                  {process.env.PUDO_API_KEY ? "API key configured" : "API key missing"}
-                  {" · "}
-                  {process.env.PUDO_API_BASE_URL?.includes("sandbox") ? "sandbox" : "configured endpoint"}
-                </p>
-              </div>
-              <span className={process.env.PUDO_API_KEY ? "text-emerald-300" : "text-amber-300"}>
-                {process.env.PUDO_API_KEY ? "●" : "○"}
-              </span>
-            </div>
-            <form action={testPudoConnection} className="mt-4">
-              <button type="submit" className="btn-secondary">Test connection</button>
-            </form>
-          </div>
+          <form action={testCourierGuyConnection} className="mt-4">
+            <button type="submit" className="btn-secondary">Test connection</button>
+          </form>
         </div>
 
         <div className="mt-5 rounded-xl border border-white/10 bg-black/20 p-4 text-xs leading-6 text-stone-400">
-          Checkout now requests live Courier Guy/PUDO rates from the active cart and verifies the selected rate again server-side before payment.
+          Checkout requests live Courier Guy rates for both door and locker delivery and verifies the selected rate again server-side before payment.
           Product variants must have shipping weight and dimensions for live quotes to work.
         </div>
       </section>
@@ -127,7 +110,7 @@ export default async function ShippingAdminPage({ searchParams }: Props) {
                       <span className="admin-featured-badge">{shipment.status}</span>
                     </div>
                     <p className="mt-1 text-xs text-stone-500">
-                      {shipment.provider === "pudo" ? "PUDO" : "The Courier Guy"}
+                      {shipment.delivery_locker_code ? "The Courier Guy Locker" : "The Courier Guy"}
                       {" · "}
                       {shipment.service_level_code || "service pending"}
                       {shipment.quoted_rate_cents != null ? " · R" + (shipment.quoted_rate_cents / 100).toFixed(2) : ""}
