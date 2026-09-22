@@ -32,30 +32,33 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
-  const variants = (product.product_variants ?? []).filter(v => v.stock_quantity > 0);
-  const cheapest = [...variants].sort((a,b) => a.retail_price_cents - b.retail_price_cents)[0];
+  const variants = (product.product_variants ?? []).filter((variant) => variant.stock_quantity > 0);
+  const cheapest = [...variants].sort((a, b) => a.retail_price_cents - b.retail_price_cents)[0];
   const images = [...(product.product_images ?? [])].sort(
-    (a,b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order,
+    (a, b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order,
   );
   const image = images[0];
   const imageUrl = getProductImageUrl(image?.storage_path);
   const jarRenderUrl = getProductImageUrl(product.jar_render_path ?? null);
 
   return (
-    <article className="product-card group">
+    <article className="shelf-product group">
       <Link href={`/spices/${product.slug}`} className="block">
-        <div className="product-visual">
-          <div className="product-plinth" />
+        <div className={`shelf-product-image ${jarRenderUrl ? "has-render" : ""}`}>
           {jarRenderUrl ? (
             <img
               src={jarRenderUrl}
               alt={product.name}
-              className="relative z-[2] mb-2 h-[20rem] w-full object-contain transition duration-300 group-hover:-translate-y-2"
+              className="premium-jar-render"
             />
           ) : (
-            <div className="product-jar">
+            <div className="fallback-product-jar">
               <div className="jar-lid" />
-              {imageUrl ? <img src={imageUrl} alt={image?.alt_text || product.name} className="jar-image" /> : <div className="jar-fallback" />}
+              {imageUrl ? (
+                <img src={imageUrl} alt={image?.alt_text || product.name} className="jar-image" />
+              ) : (
+                <div className="jar-fallback" />
+              )}
               <div className="jar-label">
                 <span className="jar-label-brand">The Glided Pantry</span>
                 <span className="jar-label-name">{product.name}</span>
@@ -63,14 +66,20 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
         </div>
-        <h2 className="product-name">{product.name}</h2>
-        <p className="product-price">{cheapest ? `R${(cheapest.retail_price_cents/100).toFixed(2)}` : "Out of stock"}</p>
+
+        <div className="shelf-product-meta">
+          <h2>{product.name}</h2>
+          <p>{cheapest ? `R${(cheapest.retail_price_cents / 100).toFixed(2)}` : "Out of stock"}</p>
+        </div>
       </Link>
+
       {cheapest ? (
-        <form action={addToCart}>
+        <form action={addToCart} className="mt-3">
           <input type="hidden" name="variantId" value={cheapest.id} />
           <input type="hidden" name="quantity" value="1" />
-          <button className="quick-add" type="submit">Add to cart</button>
+          <button className="shelf-quick-add" type="submit">
+            Quick add <span aria-hidden="true">＋</span>
+          </button>
         </form>
       ) : null}
     </article>
