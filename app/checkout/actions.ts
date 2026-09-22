@@ -27,7 +27,8 @@ const checkoutSchema = z.object({
   paymentProvider: z.enum(["yoco", "paystack"]),
   shippingChoiceType: z.enum(["manual", "live"]),
   shippingMethodId: z.string().uuid().optional(),
-  shippingProvider: z.enum(["courier_guy", "pudo"]).optional(),
+  shippingProvider: z.literal("courier_guy").optional(),
+  shippingDeliveryMode: z.enum(["door", "locker"]).optional(),
   shippingServiceLevelCode: z.string().trim().min(1).max(120).optional(),
   shippingLockerCode: z.string().trim().max(120).optional(),
 });
@@ -55,6 +56,7 @@ export async function createOrder(formData: FormData) {
     shippingChoiceType: formData.get("shippingChoiceType"),
     shippingMethodId: formData.get("shippingMethodId") || undefined,
     shippingProvider: formData.get("shippingProvider") || undefined,
+    shippingDeliveryMode: formData.get("shippingDeliveryMode") || undefined,
     shippingServiceLevelCode: formData.get("shippingServiceLevelCode") || undefined,
     shippingLockerCode: formData.get("shippingLockerCode") || undefined,
   });
@@ -122,12 +124,16 @@ export async function createOrder(formData: FormData) {
         ? 0
         : shippingMethod.fee_cents;
   } else {
-    if (!parsed.data.shippingProvider || !parsed.data.shippingServiceLevelCode) {
-      redirect("/checkout?error=Please%20select%20a%20live%20courier%20rate.");
+    if (
+      parsed.data.shippingProvider !== "courier_guy"
+      || !parsed.data.shippingDeliveryMode
+      || !parsed.data.shippingServiceLevelCode
+    ) {
+      redirect("/checkout?error=Please%20select%20a%20live%20Courier%20Guy%20rate.");
     }
 
-    if (parsed.data.shippingProvider === "pudo" && !parsed.data.shippingLockerCode) {
-      redirect("/checkout?error=Please%20choose%20a%20PUDO%20locker.");
+    if (parsed.data.shippingDeliveryMode === "locker" && !parsed.data.shippingLockerCode) {
+      redirect("/checkout?error=Please%20choose%20a%20Courier%20Guy%20locker.");
     }
 
     let parcels;
@@ -140,10 +146,10 @@ export async function createOrder(formData: FormData) {
     }
 
     try {
-      const shippingProvider = getShippingProvider(parsed.data.shippingProvider);
+      const shippingProvider = getShippingProvider("courier_guy");
       const quotes = await shippingProvider.getRates({
         collectionAddress: getShippingOrigin(),
-        deliveryAddress: parsed.data.shippingProvider === "courier_guy"
+        deliveryAddress: parsed.data.shippingDeliveryMode === "door"
           ? {
               company: parsed.data.company ?? null,
               streetAddress: parsed.data.line1,
@@ -155,7 +161,7 @@ export async function createOrder(formData: FormData) {
               country: "ZA",
             }
           : undefined,
-        deliveryLockerCode: parsed.data.shippingProvider === "pudo"
+        deliveryLockerCode: parsed.data.shippingDeliveryMode === "locker"
           ? parsed.data.shippingLockerCode
           : undefined,
         parcels,
@@ -171,9 +177,11 @@ export async function createOrder(formData: FormData) {
 
       shippingCents = quote.rateCents;
       shippingMethodSnapshot =
-        (quote.provider === "pudo" ? "PUDO" : "The Courier Guy") + " · " + quote.serviceName;
+        (parsed.data.shippingDeliveryMode === "locker" ? "The Courier Guy Locker" : "The Courier Guy")
+        + " · "
+        + quote.serviceName;
       selectedLiveQuote = {
-        provider: quote.provider,
+        provider: "courier_guy",
         serviceLevelCode: quote.serviceLevelCode,
         serviceName: quote.serviceName,
         rateCents: quote.rateCents,
