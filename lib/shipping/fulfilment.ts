@@ -174,8 +174,8 @@ export async function createShipmentForPaidOrder(orderId: string) {
   const input = {
     collectionAddress: getShippingOrigin(),
     collectionContact: getOriginContact(),
-    deliveryAddress: shipment.provider === "courier_guy" ? delivery : undefined,
-    deliveryLockerCode: shipment.provider === "pudo" ? shipment.delivery_locker_code ?? undefined : undefined,
+    deliveryAddress: shipment.delivery_locker_code ? undefined : delivery,
+    deliveryLockerCode: shipment.delivery_locker_code ?? undefined,
     deliveryContact: {
       name: deliveryName,
       email: order.email,
