@@ -1792,3 +1792,222 @@ main,
     padding-inline: .2rem;
   }
 }
+
+
+/* =========================================================
+   Brand + jar rendering fixes
+   ========================================================= */
+
+.pantry-brand-link {
+  display: inline-flex;
+  align-items: center;
+  width: clamp(12rem, 18vw, 18rem);
+  min-width: 0;
+}
+
+.pantry-brand-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 1px 0 rgba(255,255,255,.55));
+}
+
+.pantry-menu-brand-image {
+  display: block;
+  width: min(18rem, 68vw);
+  height: auto;
+  filter: invert(1) drop-shadow(0 7px 20px rgba(0,0,0,.20));
+}
+
+.footer-brand-image {
+  display: block;
+  width: 16rem;
+  max-width: 80%;
+  height: auto;
+  filter: invert(1);
+  opacity: .96;
+}
+
+.cutout-jar {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  isolation: isolate;
+}
+
+.cutout-jar-source {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  mix-blend-mode: screen;
+  filter:
+    contrast(1.08)
+    saturate(1.06)
+    drop-shadow(0 19px 18px rgba(45,38,32,.14));
+  pointer-events: none;
+}
+
+.cutout-jar::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: 22%;
+  right: 22%;
+  bottom: 1.2%;
+  height: 4.2%;
+  border-radius: 50%;
+  background: rgba(37,31,27,.18);
+  filter: blur(9px);
+}
+
+.cutout-jar-lid {
+  position: absolute;
+  z-index: 3;
+  top: 5.6%;
+  left: 18.2%;
+  right: 18.2%;
+  height: 15.5%;
+  border-radius: 42% 42% 16% 16% / 28% 28% 16% 16%;
+  background:
+    linear-gradient(
+      90deg,
+      #111 0%,
+      #f4f4f2 12%,
+      #383634 25%,
+      #f8f8f6 42%,
+      #0c0c0c 60%,
+      #e9e9e7 79%,
+      #1b1a19 100%
+    );
+  border: 1px solid rgba(24,22,20,.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.92),
+    inset 0 -4px 7px rgba(0,0,0,.42),
+    0 4px 8px rgba(40,34,30,.18);
+  pointer-events: none;
+}
+
+.cutout-jar-label {
+  position: absolute;
+  z-index: 4;
+  top: 37%;
+  left: 18%;
+  right: 18%;
+  min-height: 38%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6% 5% 4.5%;
+  color: white;
+  text-align: center;
+  border: 1px solid rgba(205,149,45,.88);
+  border-radius: 2.5% / 4%;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(255,255,255,.08), transparent 38%),
+    linear-gradient(155deg, rgba(34,33,32,.98), rgba(7,7,7,.99));
+  box-shadow:
+    inset 0 0 0 2px rgba(8,8,8,.78),
+    inset 0 0 0 3px rgba(209,154,50,.52),
+    0 7px 16px rgba(33,28,25,.18);
+  pointer-events: none;
+}
+
+.cutout-jar-brand {
+  display: block;
+  width: 84%;
+  height: 18%;
+  min-height: 1.3rem;
+  background: #fff;
+  -webkit-mask: url("/branding/glided-wordmark.svg") center / contain no-repeat;
+  mask: url("/branding/glided-wordmark.svg") center / contain no-repeat;
+}
+
+.cutout-jar-rule {
+  display: block;
+  width: 28%;
+  height: 1px;
+  margin: 4% auto;
+  background: linear-gradient(90deg, transparent, #d39224 18%, #efbd59 82%, transparent);
+}
+
+.cutout-jar-label strong {
+  display: block;
+  max-width: 100%;
+  color: #f8f6f2;
+  font-family: var(--font-display), serif;
+  font-size: clamp(.8rem, 1.65vw, 1.42rem);
+  font-weight: 500;
+  line-height: .82;
+  letter-spacing: -.025em;
+  text-wrap: balance;
+}
+
+.cutout-jar-rule-bottom {
+  margin-top: 5%;
+  margin-bottom: 3%;
+}
+
+.cutout-jar-monogram {
+  display: block;
+  width: 26%;
+  height: 12%;
+  min-height: .9rem;
+  background: #fff;
+  -webkit-mask: url("/branding/glided-monogram.svg") center / contain no-repeat;
+  mask: url("/branding/glided-monogram.svg") center / contain no-repeat;
+}
+
+.cutout-jar-label small {
+  display: block;
+  margin-top: 2%;
+  color: #d9a241;
+  font-size: clamp(.22rem, .43vw, .36rem);
+  font-weight: 700;
+  letter-spacing: .25em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pantry-home-jar {
+  width: 100%;
+  height: 100%;
+  transition: transform .35s cubic-bezier(.2,.72,.25,1);
+}
+
+.pantry-display-item:hover .pantry-home-jar {
+  transform: translateY(-.45rem);
+}
+
+.coming-soon-card-jar {
+  width: 100%;
+  height: 22rem;
+}
+
+.coming-soon-card:hover .coming-soon-card-jar {
+  transform: translateY(-.45rem);
+}
+
+.coming-soon-card-jar .cutout-jar-label strong {
+  font-size: clamp(.85rem, 1.8vw, 1.25rem);
+}
+
+@media (max-width: 760px) {
+  .pantry-brand-link {
+    width: clamp(10.2rem, 43vw, 13.5rem);
+  }
+
+  .coming-soon-card-jar {
+    height: 19rem;
+  }
+
+  .cutout-jar-label strong {
+    font-size: .94rem;
+  }
+}
