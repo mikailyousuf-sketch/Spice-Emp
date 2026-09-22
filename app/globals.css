@@ -702,3 +702,84 @@ button, input, textarea, select { font: inherit; }
   .shelf-product-image { min-height: 21rem; }
   .premium-jar-render { height: 20rem; }
 }
+
+
+/* Coming soon starter jars */
+.coming-soon-card {
+  min-width: 0;
+  color: #f6f1e9;
+}
+
+.coming-soon-visual {
+  position: relative;
+  display: grid;
+  min-height: 23rem;
+  place-items: end center;
+  overflow: hidden;
+  padding: .75rem .5rem 0;
+}
+
+.coming-soon-visual::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  bottom: .5rem;
+  left: 50%;
+  width: 58%;
+  height: 1.8rem;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(0,0,0,.58);
+  filter: blur(17px);
+}
+
+.coming-soon-visual::before {
+  content: "";
+  position: absolute;
+  inset: 14% 8% 6%;
+  z-index: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255,255,255,.075), transparent 44%),
+    radial-gradient(circle at 50% 68%, rgba(209,138,26,.06), transparent 55%);
+  filter: blur(16px);
+}
+
+.coming-soon-jar {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 22rem;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 24px 20px rgba(0,0,0,.42));
+  transition: transform .42s cubic-bezier(.2,.72,.25,1), filter .42s ease;
+}
+
+.coming-soon-card:hover .coming-soon-jar {
+  transform: translateY(-.6rem) scale(1.025);
+  filter: drop-shadow(0 32px 25px rgba(0,0,0,.48));
+}
+
+.coming-soon-badge {
+  position: absolute;
+  z-index: 4;
+  right: .4rem;
+  top: 1rem;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 999px;
+  padding: .45rem .65rem;
+  background: rgba(18,16,15,.5);
+  color: rgba(255,255,255,.62);
+  backdrop-filter: blur(12px);
+  font-size: .55rem;
+  font-weight: 700;
+  letter-spacing: .17em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 640px) {
+  .coming-soon-visual { min-height: 20rem; }
+  .coming-soon-jar { height: 19rem; }
+}
