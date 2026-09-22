@@ -91,26 +91,29 @@ export default async function ShopPage({ searchParams }: Props) {
   }
 
   return (
-    <main className="dark-stone relative min-h-screen pb-28 pt-32">
+    <main className="pantry-shop min-h-screen pb-28 pt-36">
       <section className="section-wrap relative z-10">
-        <div className="text-center">
-          <p className="micro-label">The pantry</p>
-          <h1 className="catalogue-heading mx-auto mt-4 max-w-4xl">Find the jar you need.</h1>
-        </div>
+        <header className="pantry-shop-head">
+          <div>
+            <p className="pantry-kicker">The pantry</p>
+            <h1>Find the jar you need.</h1>
+          </div>
+          <p className="pantry-shop-intro">
+            Search by spice, cuisine, dish, flavour, cooking method or heat.
+          </p>
+        </header>
 
         {!searchTerm && !filters.type && !filters.cuisine && !filters.food && !filters.flavour && !filters.method && !filters.heat ? (
-          <section className="mt-12 border-y border-white/10 py-10">
-            <div className="flex items-end justify-between gap-4">
+          <section className="pantry-preview-shelf">
+            <div className="pantry-preview-head">
               <div>
-                <p className="micro-label">Coming soon</p>
-                <h2 className="display-font mt-3 text-4xl italic tracking-[-.03em]">A first look at the shelf.</h2>
+                <p className="pantry-kicker">Coming soon</p>
+                <h2>A first look at the shelf.</h2>
               </div>
-              <span className="hidden text-[10px] font-semibold uppercase tracking-[.18em] text-white/30 sm:block">
-                4 preview jars
-              </span>
+              <span>4 preview jars</span>
             </div>
 
-            <div className="mt-6 grid gap-x-4 gap-y-14 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="pantry-preview-grid">
               {comingSoonSpices.map((spice) => (
                 <ComingSoonCard key={spice.name} spice={spice} />
               ))}
@@ -129,9 +132,9 @@ export default async function ShopPage({ searchParams }: Props) {
           />
         </div>
 
-        <div className="mt-10 flex items-center justify-between border-b border-white/10 pb-4">
-          <span className="micro-label">{products.length} jar{products.length === 1 ? "" : "s"}</span>
-          <span className="text-[10px] uppercase tracking-[.18em] text-white/30">{searchTerm ? `“${searchTerm}”` : "Browse all"}</span>
+        <div className="pantry-results-bar">
+          <span>{products.length} jar{products.length === 1 ? "" : "s"}</span>
+          <span>{searchTerm ? `“${searchTerm}”` : "Browse all"}</span>
         </div>
 
         {errorMessage ? (
@@ -145,7 +148,7 @@ export default async function ShopPage({ searchParams }: Props) {
         </div>
 
         {!errorMessage && !products.length ? (
-          <div className="mt-16 text-center text-white/45">Nothing on this shelf matches those filters.</div>
+          <div className="pantry-empty-state">Nothing on this shelf matches those filters.</div>
         ) : null}
       </section>
     </main>
