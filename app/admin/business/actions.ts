@@ -137,6 +137,17 @@ export async function saveWholesaleQuote(formData: FormData) {
   let finalQuoteId = quoteId;
 
   if (quoteId) {
+    const { data: currentQuote } = await admin
+      .from("wholesale_quotes")
+      .select("status")
+      .eq("id", quoteId)
+      .eq("enquiry_id", enquiryId)
+      .maybeSingle();
+
+    if (!currentQuote || !["draft", "sent"].includes(currentQuote.status)) {
+      redirect(detailUrl(enquiryId, "Accepted, rejected or converted quotes are locked. Create a repeat quote instead."));
+    }
+
     const { error } = await admin
       .from("wholesale_quotes")
       .update({
@@ -228,6 +239,9 @@ export async function sendWholesaleQuote(formData: FormData) {
     : quote.business_enquiries;
 
   if (!enquiry) redirect(detailUrl(enquiryId, "Enquiry details are missing."));
+  if (!["draft", "sent"].includes(quote.status)) {
+    redirect(detailUrl(enquiryId, "Only draft or already-sent quotes can be sent."));
+  }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
   const quoteUrl = siteUrl ? `${siteUrl}/wholesale/quote/${quote.access_token}` : "";
