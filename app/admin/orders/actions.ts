@@ -47,13 +47,13 @@ export async function updateOrderStatus(formData: FormData) {
     .eq("id", id);
 
   if (error) {
-    redirect(\`/admin/orders/\${id}?error=\${encodeURIComponent(error.message)}\`);
+    redirect(`/admin/orders/${id}?error=${encodeURIComponent(error.message)}`);
   }
 
   revalidatePath("/admin");
   revalidatePath("/admin/orders");
-  revalidatePath(\`/admin/orders/\${id}\`);
+  revalidatePath(`/admin/orders/${id}`);
   revalidatePath("/account/orders");
-  revalidatePath(\`/account/orders/\${id}\`);
-  redirect(\`/admin/orders/\${id}?saved=1\`);
+  revalidatePath(`/account/orders/${id}`);
+  redirect(`/admin/orders/${id}?saved=1`);
 }
