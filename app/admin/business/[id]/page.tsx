@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { WholesaleQuoteBuilder } from "@/components/admin/wholesale-quote-builder";
-import { approveBusinessEnquiry, convertAcceptedQuoteToOrder, saveWholesaleQuote, sendWholesaleQuote, updateBusinessEnquiry } from "../actions";
+import { approveBusinessEnquiry, cloneWholesaleQuote, convertAcceptedQuoteToOrder, saveWholesaleQuote, sendWholesaleQuote, updateBusinessEnquiry } from "../actions";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; saved?: string }> };
 type RequestedItem = { product_id: string; product_name: string; quantity_kg: number };
@@ -101,7 +101,14 @@ export default async function AdminBusinessDetailPage({ params, searchParams }: 
                     <button type="submit" className="btn-primary w-full">Convert accepted quote to order</button>
                   </form>
                 ) : latestQuote.converted_order_id ? (
-                  <Link href={"/admin/orders/" + latestQuote.converted_order_id} className="btn-primary w-full">Open wholesale order</Link>
+                  <div className="grid gap-2">
+                    <Link href={"/admin/orders/" + latestQuote.converted_order_id} className="btn-primary w-full">Open wholesale order</Link>
+                    <form action={cloneWholesaleQuote}>
+                      <input type="hidden" name="quoteId" value={latestQuote.id} />
+                      <input type="hidden" name="enquiryId" value={enquiry.id} />
+                      <button type="submit" className="btn-secondary w-full">Create repeat quote</button>
+                    </form>
+                  </div>
                 ) : null}
               </div>
             ) : null}
