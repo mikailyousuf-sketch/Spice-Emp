@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { ProductCard } from "@/components/products/product-card";
 import { FloatingFilterBar } from "@/components/shop/floating-filter-bar";
+import { RecentlyViewedShelf } from "@/components/shop/recently-viewed-shelf";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -142,6 +144,29 @@ export default async function ShopPage({ searchParams }: Props) {
             trending={trending}
           />
         </div>
+
+        {!searchTerm && !filters.cuisine && !filters.flavour && !filters.food && !filters.method && !filters.type && !filters.heat ? (
+          <div className="pantry-discovery-groups">
+            <section>
+              <span>Browse by cuisine</span>
+              <div>
+                {(cuisines ?? []).slice(0, 8).map((item) => (
+                  <Link key={item.id} href={`/shop?cuisine=${item.id}`}>{item.name}</Link>
+                ))}
+              </div>
+            </section>
+            <section>
+              <span>Browse by flavour</span>
+              <div>
+                {(flavours ?? []).slice(0, 8).map((item) => (
+                  <Link key={item.id} href={`/shop?flavour=${item.id}`}>{item.name}</Link>
+                ))}
+              </div>
+            </section>
+          </div>
+        ) : null}
+
+        <RecentlyViewedShelf />
 
         <div className="pantry-results-bar">
           <span>{products.length} jar{products.length === 1 ? "" : "s"}</span>
