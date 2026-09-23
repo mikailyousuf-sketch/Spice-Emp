@@ -5245,3 +5245,51 @@ main,
     grid-template-columns: 1fr;
   }
 }
+
+
+.admin-order-list-right {
+  display: grid;
+  justify-items: end;
+  gap: .35rem;
+}
+
+.admin-order-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .35rem;
+}
+
+.admin-order-badges span {
+  padding: .3rem .48rem;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 999px;
+  color: rgba(255,255,255,.68);
+  background: rgba(255,255,255,.04);
+  font-size: .49rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.admin-order-badges span[data-state="paid"],
+.admin-order-badges span[data-state="fulfilled"] {
+  border-color: rgba(96,190,116,.20);
+  color: #a9efb8;
+  background: rgba(65,139,81,.08);
+}
+
+.admin-order-badges span[data-state="failed"],
+.admin-order-badges span[data-state="cancelled"] {
+  border-color: rgba(211,93,93,.20);
+  color: #f1aaaa;
+  background: rgba(151,55,55,.08);
+}
+
+.admin-order-method {
+  margin: .75rem 0 0;
+  padding-top: .7rem;
+  border-top: 1px solid rgba(255,255,255,.07);
+  color: rgba(255,255,255,.46);
+  font-size: .58rem;
+}
