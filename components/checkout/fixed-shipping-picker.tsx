@@ -44,6 +44,7 @@ export function FixedShippingPicker({
   const [selectedId, setSelectedId] = useState("");
   const [deliveryLatitude, setDeliveryLatitude] = useState("");
   const [deliveryLongitude, setDeliveryLongitude] = useState("");
+  const [pudoLocker, setPudoLocker] = useState("");
   const [uberStatus, setUberStatus] = useState<"idle" | "checking" | "available" | "outside" | "error">("idle");
   const [uberDistance, setUberDistance] = useState<number | null>(null);
 
@@ -118,21 +119,36 @@ export function FixedShippingPicker({
       <input type="hidden" name="shippingMethodId" value={selectedId} />
       <input type="hidden" name="deliveryLatitude" value={deliveryLatitude} />
       <input type="hidden" name="deliveryLongitude" value={deliveryLongitude} />
+      <input type="hidden" name="pudoLocker" value={pudoLocker} />
 
       <div className="fixed-shipping-list">
         {standardMethods.map((method) => (
-          <button
-            type="button"
-            key={method.id}
-            onClick={() => selectStandard(method.id)}
-            className={selectedId === method.id ? "is-selected" : ""}
-          >
-            <span>
-              <strong>{method.name}</strong>
-              <small>{method.description}</small>
-            </span>
-            <b>R{(method.fee_cents / 100).toFixed(0)}</b>
-          </button>
+          <div className="fixed-shipping-option" key={method.id}>
+            <button
+              type="button"
+              onClick={() => selectStandard(method.id)}
+              className={selectedId === method.id ? "is-selected" : ""}
+            >
+              <span>
+                <strong>{method.name}</strong>
+                <small>{method.description}</small>
+              </span>
+              <b>R{(method.fee_cents / 100).toFixed(0)}</b>
+            </button>
+
+            {method.code === "pudo-locker" && selectedId === method.id ? (
+              <label className="pudo-locker-field">
+                <span>Preferred locker / pickup area</span>
+                <input
+                  type="text"
+                  value={pudoLocker}
+                  onChange={(event) => setPudoLocker(event.target.value)}
+                  placeholder="e.g. Centurion Mall PUDO locker"
+                  required
+                />
+              </label>
+            ) : null}
+          </div>
         ))}
       </div>
 
