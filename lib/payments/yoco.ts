@@ -34,7 +34,7 @@ export class YocoProvider implements PaymentProvider {
       headers: {
         Authorization: `Bearer ${this.getSecretKey()}`,
         "Content-Type": "application/json",
-        "Idempotency-Key": input.orderId,
+        "Idempotency-Key": input.attemptId,
       },
       body: JSON.stringify({
         amount: input.amountCents,
