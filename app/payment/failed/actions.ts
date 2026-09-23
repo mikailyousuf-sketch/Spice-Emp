@@ -113,6 +113,7 @@ export async function retryPayment(formData: FormData) {
     const payment = await provider.createPayment({
       orderId: order.id,
       orderNumber: order.order_number,
+      attemptId: attempt.id,
       amountCents: order.total_cents,
       currency: "ZAR",
       email: order.email,
