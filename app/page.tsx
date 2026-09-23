@@ -56,8 +56,8 @@ export default async function HomePage() {
             </p>
             <span className="pantry-gold-dash" />
             <div className="pantry-hero-actions">
-              <Link href="/shop" className="pantry-hero-primary">Explore the pantry</Link>
-              <Link href="/business" className="pantry-hero-secondary">For business</Link>
+              <Link href="/shop" className="pantry-hero-primary">[Explore The Pantry]    </Link>
+              <Link href="/business" className="pantry-hero-secondary">     [For business]</Link>
             </div>
           </div>
 
