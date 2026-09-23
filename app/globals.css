@@ -5614,3 +5614,112 @@ main,
 .assistant-input::placeholder {
   color: rgba(23,21,19,.50) !important;
 }
+
+
+/* Checkout shipping controls now sit on a light card. */
+.fixed-shipping-option > button,
+.uber-available {
+  color: #171513;
+  border-color: rgba(35,29,25,.18);
+  background: rgba(255,253,249,.86);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.96);
+}
+
+.fixed-shipping-option > button.is-selected,
+.uber-available.is-selected {
+  border-color: rgba(150,96,20,.48);
+  background: rgba(244,229,199,.92);
+}
+
+.fixed-shipping-option > button strong,
+.uber-available strong {
+  color: #171513;
+}
+
+.fixed-shipping-option > button small,
+.uber-available small {
+  color: rgba(23,21,19,.62);
+}
+
+.fixed-shipping-option > button b,
+.uber-available b {
+  color: #8c5b17;
+}
+
+.pudo-locker-field {
+  border-color: rgba(35,29,25,.15);
+  background: rgba(241,237,231,.92);
+}
+
+.pudo-locker-field span {
+  color: rgba(23,21,19,.72);
+}
+
+.pudo-locker-field input {
+  color: #171513;
+  border-color: rgba(35,29,25,.20);
+  background: #fffdf9;
+}
+
+.pudo-locker-field input::placeholder {
+  color: rgba(23,21,19,.48);
+}
+
+.uber-shipping-card {
+  border-color: rgba(47,111,61,.20);
+  background: rgba(225,243,229,.92);
+}
+
+.uber-shipping-head strong {
+  color: #1c3d25;
+}
+
+.uber-shipping-head small {
+  color: rgba(28,61,37,.68);
+}
+
+.uber-shipping-head > b {
+  color: #2f6f3d;
+}
+
+.uber-shipping-message,
+.fixed-shipping-help {
+  color: rgba(23,21,19,.68);
+}
+
+/* Status pills live directly over the marble, so keep them dark-on-light. */
+.account-order-status span,
+.admin-order-status-strip span {
+  color: #171513;
+  border-color: rgba(35,29,25,.16);
+  background: rgba(249,247,243,.90);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.92);
+}
+
+.account-order-status b,
+.admin-order-status-strip b {
+  color: rgba(23,21,19,.52);
+}
+
+.account-tracking {
+  border-color: rgba(150,96,20,.24);
+  background: rgba(247,236,213,.94);
+}
+
+.account-tracking span,
+.account-tracking small {
+  color: rgba(23,21,19,.60);
+}
+
+.account-tracking strong {
+  color: #7d5114;
+}
+
+/* Metrics need a definite surface, not transparent white over marble. */
+.admin-metric {
+  border-color: rgba(255,255,255,.14);
+  background: rgba(28,25,23,.95);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.07),
+    0 16px 35px rgba(34,28,24,.12);
+}
