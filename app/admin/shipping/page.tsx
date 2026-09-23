@@ -69,8 +69,8 @@ export default async function ShippingAdminPage({ searchParams }: Props) {
         <ShippingCard
           number="03"
           name={uber?.name ?? "Uber delivery"}
-          price={\`R\${Math.min(100, Number(settings?.uber_fee_cents ?? 10000) / 100).toFixed(0)}\`}
-          detail={\`\${Number(settings?.uber_radius_km ?? 15).toFixed(0)} km radius\`}
+          price={`R${Math.min(100, Number(settings?.uber_fee_cents ?? 10000) / 100).toFixed(0)}`}
+          detail={`${Number(settings?.uber_radius_km ?? 15).toFixed(0)} km radius`}
           subdetail={settings?.uber_origin_label || "Dispatch location not named"}
           status={settings?.uber_online ? "Online" : "Offline"}
           live={Boolean(settings?.uber_online)}
