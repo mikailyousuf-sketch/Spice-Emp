@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCartSnapshot } from "@/lib/cart";
+import { getCurrentUserId } from "@/lib/auth";
 import { FixedShippingPicker } from "@/components/checkout/fixed-shipping-picker";
 import { createOrder } from "./actions";
 
@@ -16,7 +17,8 @@ export default async function CheckoutPage({ searchParams }: Props) {
 
   const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
-  const [{ data: shippingMethods }, { data: shippingSettings }] = await Promise.all([
+  const userId = await getCurrentUserId();
+  const [{ data: shippingMethods }, { data: shippingSettings }, { data: defaultAddress }] = await Promise.all([
     supabase
       .from("shipping_methods")
       .select("id,code,name,description,fee_cents")
@@ -29,6 +31,15 @@ export default async function CheckoutPage({ searchParams }: Props) {
       .select("uber_online,uber_origin_label,uber_origin_lat,uber_origin_lng,uber_radius_km,uber_fee_cents")
       .eq("id", true)
       .maybeSingle(),
+    userId
+      ? supabase
+          .from("addresses")
+          .select("first_name,last_name,company,phone,line1,line2,suburb,city,province,postal_code")
+          .eq("user_id", userId)
+          .eq("is_default_shipping", true)
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   const subtotal = cart.items.reduce((sum, item) => {
@@ -48,28 +59,28 @@ export default async function CheckoutPage({ searchParams }: Props) {
             <div className="glass-soft grid gap-5 rounded-[2rem] p-6 sm:p-8">
               <p className="display-font text-2xl font-semibold">Delivery details</p>
               <div className="grid gap-5 md:grid-cols-2">
-                <Field label="First name"><input name="firstName" required className="field" /></Field>
-                <Field label="Last name"><input name="lastName" required className="field" /></Field>
+                <Field label="First name"><input name="firstName" defaultValue={defaultAddress?.first_name ?? ""} required className="field" /></Field>
+                <Field label="Last name"><input name="lastName" defaultValue={defaultAddress?.last_name ?? ""} required className="field" /></Field>
               </div>
               <div className="grid gap-5 md:grid-cols-2">
                 <Field label="Email"><input name="email" type="email" required className="field" /></Field>
-                <Field label="Phone"><input name="phone" required className="field" /></Field>
+                <Field label="Phone"><input name="phone" defaultValue={defaultAddress?.phone ?? ""} required className="field" /></Field>
               </div>
-              <Field label="Company (optional)"><input name="company" className="field" /></Field>
-              <Field label="Street address"><input name="line1" required className="field" /></Field>
-              <Field label="Apartment / unit / building (optional)"><input name="line2" className="field" /></Field>
+              <Field label="Company (optional)"><input name="company" defaultValue={defaultAddress?.company ?? ""} className="field" /></Field>
+              <Field label="Street address"><input name="line1" defaultValue={defaultAddress?.line1 ?? ""} required className="field" /></Field>
+              <Field label="Apartment / unit / building (optional)"><input name="line2" defaultValue={defaultAddress?.line2 ?? ""} className="field" /></Field>
               <div className="grid gap-5 md:grid-cols-2">
-                <Field label="Suburb"><input name="suburb" className="field" /></Field>
-                <Field label="City"><input name="city" required className="field" /></Field>
+                <Field label="Suburb"><input name="suburb" defaultValue={defaultAddress?.suburb ?? ""} className="field" /></Field>
+                <Field label="City"><input name="city" defaultValue={defaultAddress?.city ?? ""} required className="field" /></Field>
               </div>
               <div className="grid gap-5 md:grid-cols-2">
                 <Field label="Province">
-                  <select name="province" required defaultValue="" className="field">
+                  <select name="province" required defaultValue={defaultAddress?.province ?? ""} className="field">
                     <option value="" disabled>Select province</option>
                     {provinces.map((province) => <option key={province} value={province}>{province}</option>)}
                   </select>
                 </Field>
-                <Field label="Postal code"><input name="postalCode" required className="field" /></Field>
+                <Field label="Postal code"><input name="postalCode" defaultValue={defaultAddress?.postal_code ?? ""} required className="field" /></Field>
               </div>
               <Field label="Order notes (optional)"><textarea name="notes" rows={4} className="field resize-y" /></Field>
             </div>
