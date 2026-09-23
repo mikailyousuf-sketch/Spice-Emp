@@ -55,18 +55,33 @@ export function Navbar() {
 
       <div className={`menu-scrim ${menuOpen ? "is-open" : ""}`} onClick={() => setMenuOpen(false)} />
       <aside className={`menu-panel ${menuOpen ? "is-open" : ""}`} aria-hidden={!menuOpen}>
-        <div className="flex items-center justify-between">
+        <div className="menu-panel-top">
           <img src="/branding/glided-wordmark.svg" alt="The Glided Pantry" className="pantry-menu-brand-image" />
-          <button type="button" className="float-control" onClick={() => setMenuOpen(false)} aria-label="Close menu"><IconMenu open /></button>
+          <button type="button" className="menu-close-control" onClick={() => setMenuOpen(false)} aria-label="Close menu"><IconMenu open /></button>
         </div>
-        <nav className="mt-16 grid gap-3">
+
+        <div className="menu-panel-intro">
+          <span>Pantry navigation</span>
+          <p>Spices, discovery and your account — all in one place.</p>
+        </div>
+
+        <nav className="menu-panel-links" aria-label="Menu navigation">
           {navLinks.map((link,index) => (
             <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)} className="menu-link">
-              <span className="text-xs tabular-nums text-white/35">0{index+1}</span><span>{link.label}</span><span className="ml-auto text-white/30">↗</span>
+              <span className="menu-link-number">0{index+1}</span>
+              <span>{link.label}</span>
+              <span className="menu-link-arrow">↗</span>
             </Link>
           ))}
         </nav>
-        <p className="mt-auto pt-12 text-xs uppercase tracking-[.2em] text-white/35">South Africa · Retail + Wholesale</p>
+
+        <div className="menu-panel-quick">
+          <Link href="/account" onClick={() => setMenuOpen(false)}>My account <span>→</span></Link>
+          <Link href="/cart" onClick={() => setMenuOpen(false)}>Cart <span>→</span></Link>
+          <Link href="/business" onClick={() => setMenuOpen(false)}>Wholesale <span>→</span></Link>
+        </div>
+
+        <p className="menu-panel-foot">South Africa · Retail + Wholesale</p>
       </aside>
     </>
   );
