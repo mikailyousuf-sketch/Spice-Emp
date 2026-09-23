@@ -7,7 +7,7 @@ export default async function AdminOrdersPage() {
   const supabase = await createClient();
   const { data: orders, error } = await supabase
     .from("orders")
-    .select("id,order_number,email,status,payment_status,fulfilment_status,total_cents,created_at")
+    .select("id,order_number,email,status,payment_status,fulfilment_status,total_cents,shipping_method_snapshot,created_at")
     .order("created_at", { ascending: false });
 
   return (
@@ -25,10 +25,17 @@ export default async function AdminOrdersPage() {
                 <p className="display-font text-xl font-semibold">{order.order_number}</p>
                 <p className="mt-1 text-xs text-stone-500">{order.email} · {new Date(order.created_at).toLocaleDateString("en-ZA")}</p>
               </div>
-              <div className="text-right">
+              <div className="admin-order-list-right">
                 <p className="font-semibold">R{(order.total_cents / 100).toFixed(2)}</p>
-                <p className="mt-1 text-xs text-stone-500">{order.status} · {order.payment_status}</p>
+                <div className="admin-order-badges">
+                  <span data-state={order.payment_status}>{order.payment_status}</span>
+                  <span data-state={order.fulfilment_status}>{order.fulfilment_status}</span>
+                </div>
               </div>
+            </div>
+            {order.shipping_method_snapshot ? (
+              <p className="admin-order-method">{order.shipping_method_snapshot}</p>
+            ) : null}
             </div>
           </Link>
         )) : <div className="glass-soft rounded-2xl p-8 text-stone-500">No orders yet.</div>}
