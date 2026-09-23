@@ -14,21 +14,6 @@ export async function markOrderPaid(orderId: string, attemptId: string, raw: unk
     throw new Error(transitionError.message);
   }
 
-  if (transition === "stock_unavailable") {
-    await admin
-      .from("payment_attempts")
-      .update({
-        status: "succeeded",
-        raw_response: raw,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", attemptId);
-
-    throw new Error(
-      "Payment succeeded after stock was released, but the order could not be re-reserved. Manual intervention is required.",
-    );
-  }
-
   await admin
     .from("payment_attempts")
     .update({
@@ -38,9 +23,15 @@ export async function markOrderPaid(orderId: string, attemptId: string, raw: unk
     })
     .eq("id", attemptId);
 
-  if (transition !== "paid") {
+  if (transition === "paid_stock_unavailable") {
+    console.error("[payment] paid order requires manual refund because stock could not be re-reserved", {
+      orderId,
+      attemptId,
+    });
     return;
   }
+
+  if (transition !== "paid") return;
 
   const { data: updatedOrder } = await admin
     .from("orders")
