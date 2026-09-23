@@ -101,6 +101,8 @@ export async function retryPayment(formData: FormData) {
     );
   }
 
+  let checkoutUrl: string;
+
   try {
     const provider = getPaymentProvider(providerName);
     const successUrl =
@@ -131,7 +133,7 @@ export async function retryPayment(formData: FormData) {
       })
       .eq("id", attempt.id);
 
-    redirect(payment.checkoutUrl);
+    checkoutUrl = payment.checkoutUrl;
   } catch (error) {
     await cancelOrderAndRestoreStock(
       order.id,
@@ -146,4 +148,6 @@ export async function retryPayment(formData: FormData) {
       )}`,
     );
   }
+
+  redirect(checkoutUrl);
 }
