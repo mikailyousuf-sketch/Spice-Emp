@@ -80,7 +80,7 @@ export default async function AdminPage() {
       </div>
 
       <div className="admin-metric-grid mt-8">
-        <Metric label="Revenue this month" value={\`R\${(monthRevenue / 100).toFixed(2)}\`} detail="Paid orders only" />
+        <Metric label="Revenue this month" value={`R${(monthRevenue / 100).toFixed(2)}`} detail="Paid orders only" />
         <Metric label="Orders today" value={String(ordersToday ?? 0)} detail="New orders since midnight" />
         <Metric label="Needs fulfilment" value={String(fulfilmentQueue ?? 0)} detail="Paid · unfulfilled / processing" attention={Boolean(fulfilmentQueue)} />
         <Metric label="Wholesale queue" value={String(wholesaleQueue ?? 0)} detail="New or under review" attention={Boolean(wholesaleQueue)} />
@@ -89,7 +89,7 @@ export default async function AdminPage() {
           label="Uber delivery"
           value={shippingSettings?.uber_online ? "Online" : "Offline"}
           detail={shippingSettings?.uber_online
-            ? \`\${Number(shippingSettings.uber_radius_km).toFixed(0)} km · R\${(Number(shippingSettings.uber_fee_cents) / 100).toFixed(0)}\`
+            ? `${Number(shippingSettings.uber_radius_km).toFixed(0)} km · R${(Number(shippingSettings.uber_fee_cents) / 100).toFixed(0)}`
             : "Not shown at checkout"}
           live={Boolean(shippingSettings?.uber_online)}
         />
@@ -109,7 +109,7 @@ export default async function AdminPage() {
 
           <div className="mt-5 grid gap-3">
             {recentOrders?.length ? recentOrders.map((order) => (
-              <Link href={\`/admin/orders/\${order.id}\`} key={order.id} className="admin-recent-order">
+              <Link href={`/admin/orders/${order.id}`} key={order.id} className="admin-recent-order">
                 <div>
                   <strong>{order.order_number}</strong>
                   <span>{order.email}</span>
