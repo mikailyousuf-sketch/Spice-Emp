@@ -25,6 +25,7 @@ const checkoutSchema = z.object({
   shippingMethodId: z.string().uuid(),
   deliveryLatitude: z.union([z.literal(""), z.coerce.number().min(-90).max(90)]).optional(),
   deliveryLongitude: z.union([z.literal(""), z.coerce.number().min(-180).max(180)]).optional(),
+  pudoLocker: z.string().trim().max(180).optional(),
 });
 
 function toRad(value: number) {
@@ -65,6 +66,7 @@ export async function createOrder(formData: FormData) {
     shippingMethodId: formData.get("shippingMethodId"),
     deliveryLatitude: formData.get("deliveryLatitude") || "",
     deliveryLongitude: formData.get("deliveryLongitude") || "",
+    pudoLocker: formData.get("pudoLocker") || undefined,
   });
 
   if (!parsed.success) redirect("/checkout?error=Please%20check%20your%20checkout%20details.");
@@ -111,6 +113,9 @@ export async function createOrder(formData: FormData) {
   if (shippingMethod.code === "door-to-door") {
     shippingCents = 12000;
   } else if (shippingMethod.code === "pudo-locker") {
+    if (!parsed.data.pudoLocker || parsed.data.pudoLocker.length < 2) {
+      redirect("/checkout?error=Please%20enter%20your%20preferred%20PUDO%20locker%20or%20pickup%20area.");
+    }
     shippingCents = 7500;
   } else {
     const { data: settings, error: settingsError } = await admin
@@ -152,7 +157,7 @@ export async function createOrder(formData: FormData) {
     shippingMethod.code === "door-to-door"
       ? "Door to door · The Courier Guy · 3–5 working days"
       : shippingMethod.code === "pudo-locker"
-        ? "PUDO locker pickup"
+        ? "PUDO locker pickup · " + parsed.data.pudoLocker
         : "Uber delivery";
   const totalCents = subtotalCents + shippingCents;
 
