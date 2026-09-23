@@ -1,8 +1,29 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+type Props = {
+  searchParams: Promise<{ order?: string }>;
+};
 
 export const metadata = { title: "Payment pending" };
 
-export default function PaymentPendingPage() {
+export default async function PaymentPendingPage({ searchParams }: Props) {
+  const { order: token } = await searchParams;
+
+  if (token) {
+    const admin = createAdminClient();
+    const { data: order } = await admin
+      .from("orders")
+      .select("payment_status")
+      .eq("order_access_token", token)
+      .maybeSingle();
+
+    if (order?.payment_status === "paid") {
+      redirect("/order-confirmation/" + token);
+    }
+  }
+
   return (
     <main className="pt-32">
       <section className="section-wrap py-24">
@@ -12,11 +33,17 @@ export default function PaymentPendingPage() {
             We&apos;re still confirming the payment.
           </h1>
           <p className="mt-5 text-stone-400">
-            Your order is recorded. Don&apos;t pay twice. You can check your account orders or return shortly.
+            Your order is recorded. Don&apos;t pay twice. Payment callbacks and webhooks
+            can take a short while to settle.
           </p>
-          <div className="mt-8 flex justify-center gap-3">
-            <Link href="/account/orders" className="btn-primary">My orders</Link>
-            <Link href="/shop" className="btn-secondary">Back to shop</Link>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            {token ? (
+              <Link href={"/payment/pending?order=" + token} className="btn-primary">
+                Check payment again
+              </Link>
+            ) : null}
+            <Link href="/account/orders" className="btn-secondary">My orders</Link>
+            <Link href="/contact" className="btn-secondary">Need help?</Link>
           </div>
         </div>
       </section>
