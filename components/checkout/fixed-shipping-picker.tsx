@@ -62,8 +62,34 @@ export function FixedShippingPicker({
     && radiusKm > 0
     && Boolean(uberMethod);
 
+  function publishSelection(method: ShippingMethod, detail?: string) {
+    window.dispatchEvent(
+      new CustomEvent("pantry:shipping-selection", {
+        detail: {
+          id: method.id,
+          code: method.code,
+          name: method.name,
+          feeCents:
+            method.code === "uber-delivery"
+              ? Math.min(10000, Math.max(0, Number(uberSettings?.uber_fee_cents) || 10000))
+              : method.fee_cents,
+          detail: detail || method.description || undefined,
+        },
+      }),
+    );
+  }
+
   function selectStandard(methodId: string) {
     setSelectedId(methodId);
+    const method = methods.find((item) => item.id === methodId);
+    if (method) {
+      publishSelection(
+        method,
+        method.code === "pudo-locker" && pudoLocker
+          ? `PUDO preference: ${pudoLocker}`
+          : method.description || undefined,
+      );
+    }
     setUberStatus("idle");
     setUberDistance(null);
     setDeliveryLatitude("");
@@ -92,6 +118,10 @@ export function FixedShippingPicker({
           setDeliveryLatitude(String(lat));
           setDeliveryLongitude(String(lng));
           setSelectedId(uberMethod.id);
+          publishSelection(
+            uberMethod,
+            `Approx. ${km.toFixed(1)} km from ${uberSettings?.uber_origin_label || "our dispatch point"}`,
+          );
           setUberStatus("available");
         } else {
           setDeliveryLatitude("");
@@ -142,7 +172,12 @@ export function FixedShippingPicker({
                 <input
                   type="text"
                   value={pudoLocker}
-                  onChange={(event) => setPudoLocker(event.target.value)}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setPudoLocker(value);
+                    const method = methods.find((item) => item.id === selectedId);
+                    if (method) publishSelection(method, value ? `PUDO preference: ${value}` : method.description || undefined);
+                  }}
                   placeholder="e.g. Centurion Mall PUDO locker"
                   required
                 />
@@ -169,7 +204,13 @@ export function FixedShippingPicker({
             <button
               type="button"
               className={selectedId === uberMethod.id ? "uber-available is-selected" : "uber-available"}
-              onClick={() => setSelectedId(uberMethod.id)}
+              onClick={() => {
+                setSelectedId(uberMethod.id);
+                publishSelection(
+                  uberMethod,
+                  `Approx. ${uberDistance?.toFixed(1)} km from ${uberSettings?.uber_origin_label || "our dispatch point"}`,
+                );
+              }}
             >
               <span>
                 <strong>Uber delivery available</strong>
