@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { sendOrderStatusEmail } from "@/lib/notifications/email";
 
 const orderStatus = z.enum(["pending","confirmed","processing","shipped","completed","cancelled","refunded"]);
 const paymentStatus = z.enum(["unpaid","pending","paid","failed","refunded"]);
@@ -24,7 +25,7 @@ export async function updateOrderStatus(formData: FormData) {
 
   const { data: current } = await supabase
     .from("orders")
-    .select("dispatched_at")
+    .select("dispatched_at,email,order_number,status,fulfilment_status,tracking_reference")
     .eq("id", id)
     .maybeSingle();
 
@@ -33,7 +34,10 @@ export async function updateOrderStatus(formData: FormData) {
       ? current?.dispatched_at || new Date().toISOString()
       : current?.dispatched_at ?? null;
 
-  const { error } = await supabase
+  const statusChanged = current?.status !== status || current?.fulfilment_status !== fulfilment;
+  const trackingChanged = (current?.tracking_reference ?? "") !== trackingReference;
+
+  const { data: updatedOrder, error } = await supabase
     .from("orders")
     .update({
       status,
@@ -44,10 +48,20 @@ export async function updateOrderStatus(formData: FormData) {
       dispatched_at: dispatchedAt,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", id);
+    .eq("id", id)
+    .select("email,order_number,status,fulfilment_status,tracking_reference")
+    .maybeSingle();
 
   if (error) {
     redirect(`/admin/orders/${id}?error=${encodeURIComponent(error.message)}`);
+  }
+
+  if (updatedOrder && (statusChanged || trackingChanged)) {
+    try {
+      await sendOrderStatusEmail(updatedOrder);
+    } catch (emailError) {
+      console.error("[email] order status email failed", emailError);
+    }
   }
 
   revalidatePath("/admin");
