@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     .limit(1)
     .maybeSingle();
 
-  if (!attempt) {
+  if (!attempt || !attempt.provider_reference || attempt.provider_reference !== reference) {
     return NextResponse.redirect(new URL("/payment/failed", request.url));
   }
 
