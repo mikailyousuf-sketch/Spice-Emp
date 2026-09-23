@@ -73,8 +73,9 @@ export async function sendTransactionalEmail(payload: EmailPayload) {
         }
 
         async function command(value: string, expect: number[]) {
+          const pending = waitFor(expect);
           socket.write(value + "\r\n");
-          return waitFor(expect);
+          return pending;
         }
 
         void (async () => {
@@ -101,8 +102,9 @@ export async function sendTransactionalEmail(payload: EmailPayload) {
               ".",
             ].join("\r\n");
 
+            const accepted = waitFor([250]);
             socket.write(message + "\r\n");
-            await waitFor([250]);
+            await accepted;
             await command("QUIT", [221]);
             socket.end();
             resolve();
