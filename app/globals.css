@@ -5340,3 +5340,46 @@ main,
 .auth-card .text-orange-200 {
   color: #efc979;
 }
+
+
+.contact-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.contact-card-number {
+  color: #efc979;
+  font-size: .54rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+
+.contact-card-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .8rem;
+  margin-top: 1.4rem;
+  padding: .8rem .9rem;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: .9rem;
+  color: #fff8ee;
+  background: rgba(255,255,255,.045);
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.contact-card-action span {
+  color: #efc979;
+}
+
+.contact-card-note {
+  margin: 1.4rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255,255,255,.09);
+  color: rgba(255,255,255,.52);
+  font-size: .58rem;
+  line-height: 1.55;
+}
