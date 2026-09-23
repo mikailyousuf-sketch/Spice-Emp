@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getProductImageUrl } from "@/lib/products/image-url";
 
 const requestSchema = z.object({
   query: z.string().trim().min(2).max(1000),
+  refinements: z.object({
+    heat: z.enum(["mild","medium","hot"]).optional(),
+    diet: z.enum(["meat","vegetarian"]).optional(),
+    cuisine: z.string().trim().max(80).optional(),
+  }).optional(),
 });
 
 const stopWords = new Set([
@@ -74,8 +80,15 @@ export async function POST(request: Request) {
   }
 
   const query = parsed.data.query;
-  const queryLower = query.toLowerCase();
-  const queryTokens = tokens(query);
+  const refinements = parsed.data.refinements ?? {};
+  const refinementText = [
+    refinements.heat,
+    refinements.diet,
+    refinements.cuisine,
+  ].filter(Boolean).join(" ");
+  const enrichedQuery = [query, refinementText].filter(Boolean).join(" ");
+  const queryLower = enrichedQuery.toLowerCase();
+  const queryTokens = tokens(enrichedQuery);
 
   const supabase = await createClient();
 
@@ -159,6 +172,13 @@ export async function POST(request: Request) {
       || getProductImageUrl(product.jar_render_path ?? null);
     const cheapest = cheapestInStock(variants);
 
+    const why =
+      matched.size > 0
+        ? `Matches ${Array.from(matched).slice(0, 3).join(", ")} in the live pantry.`
+        : heatIntent !== null
+          ? `Its heat profile is close to what you asked for.`
+          : `Available now and relevant to your cooking prompt.`;
+
     return {
       id: product.id,
       name: product.name,
@@ -172,6 +192,7 @@ export async function POST(request: Request) {
       variantLabel: cheapest ? `${cheapest.weight_value}${cheapest.weight_unit}` : null,
       inStock,
       matched: Array.from(matched).slice(0, 4),
+      why,
       score,
     };
   });
@@ -189,13 +210,17 @@ export async function POST(request: Request) {
         .slice(0, 4);
 
   const { data: claimsData } = await supabase.auth.getClaims();
-  const userId = claimsData?.claims?.sub;
-  if (userId) {
-    await supabase.from("assistant_queries").insert({
-      user_id: userId,
-      query_text: query,
-    });
-  }
+  const userId = claimsData?.claims?.sub ?? null;
+  const admin = createAdminClient();
+
+  await admin.from("assistant_queries").insert({
+    user_id: userId,
+    query_text: query,
+    result_count: fallback.length,
+    strong_match: ranked.length > 0,
+    top_product_ids: fallback.slice(0, 6).map((item) => item.id),
+    refinement_context: refinements,
+  });
 
   return NextResponse.json({
     query,
@@ -204,5 +229,11 @@ export async function POST(request: Request) {
     note: ranked.length
       ? "Matched only against products and classifications in the live pantry."
       : "No strong catalogue match yet, so these are currently available pantry items.",
+    refinements: [
+      { key: "mild", label: "Make it mild" },
+      { key: "hot", label: "Make it hotter" },
+      { key: "meat", label: "Meat dish" },
+      { key: "vegetarian", label: "Vegetarian" },
+    ],
   });
 }
