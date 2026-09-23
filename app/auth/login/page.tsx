@@ -11,9 +11,9 @@ export default async function LoginPage({ searchParams }: Props) {
   const { error } = await searchParams;
 
   return (
-    <main className="pt-32">
+    <main className="auth-page pt-32">
       <section className="section-wrap py-20">
-        <div className="glass mx-auto max-w-lg rounded-[2rem] p-7 sm:p-9">
+        <div className="auth-card mx-auto max-w-lg rounded-[2rem] p-7 sm:p-9">
           <span className="eyebrow">Account</span>
           <h1 className="display-font mt-5 text-4xl font-semibold tracking-[-.04em]">Sign in</h1>
 
