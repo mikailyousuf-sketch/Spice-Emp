@@ -16,32 +16,104 @@ function escapeHtml(value: unknown) {
 }
 
 export async function sendTransactionalEmail(payload: EmailPayload) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.TRANSACTIONAL_EMAIL_FROM;
+  const user = process.env.GMAIL_SMTP_USER || "theglidedpantry.co.za@gmail.com";
+  const appPassword = process.env.GMAIL_APP_PASSWORD?.replace(/\s+/g, "");
 
-  if (!apiKey || !from) {
-    console.warn("[email] transactional email skipped: provider not configured");
+  if (!appPassword) {
+    console.warn("[email] Gmail SMTP skipped: GMAIL_APP_PASSWORD is not configured");
     return { sent: false, reason: "not_configured" as const };
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: [payload.to],
-      subject: payload.subject,
-      html: payload.html,
-    }),
-  });
+  const { connect } = await import("node:tls");
 
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(`Email provider error: ${response.status} ${message}`);
-  }
+  await new Promise<void>((resolve, reject) => {
+    const socket = connect(
+      {
+        host: "smtp.gmail.com",
+        port: 465,
+        servername: "smtp.gmail.com",
+        rejectUnauthorized: true,
+      },
+      () => {
+        let buffer = "";
+        const queue: Array<{
+          expect: number[];
+          resolve: (value: string) => void;
+          reject: (error: Error) => void;
+        }> = [];
+
+        function flush() {
+          const lines = buffer.split("\r\n");
+          buffer = lines.pop() ?? "";
+
+          for (const line of lines) {
+            if (!/^\d{3}[ -]/.test(line)) continue;
+            const pending = queue[0];
+            if (!pending) continue;
+            if (line[3] === "-") continue;
+
+            queue.shift();
+            const code = Number(line.slice(0, 3));
+            if (pending.expect.includes(code)) pending.resolve(line);
+            else pending.reject(new Error(`SMTP error: ${line}`));
+          }
+        }
+
+        socket.on("data", (chunk) => {
+          buffer += chunk.toString("utf8");
+          flush();
+        });
+
+        socket.once("error", reject);
+
+        function waitFor(expect: number[]) {
+          return new Promise<string>((resolveStep, rejectStep) => {
+            queue.push({ expect, resolve: resolveStep, reject: rejectStep });
+          });
+        }
+
+        async function command(value: string, expect: number[]) {
+          socket.write(value + "\r\n");
+          return waitFor(expect);
+        }
+
+        void (async () => {
+          try {
+            await waitFor([220]);
+            await command("EHLO theglidedpantry.co.za", [250]);
+            await command("AUTH LOGIN", [334]);
+            await command(Buffer.from(user).toString("base64"), [334]);
+            await command(Buffer.from(appPassword).toString("base64"), [235]);
+            await command(`MAIL FROM:<${user}>`, [250]);
+            await command(`RCPT TO:<${payload.to}>`, [250, 251]);
+            await command("DATA", [354]);
+
+            const html = payload.html.replace(/\r?\n/g, "\r\n").replace(/^\./gm, "..");
+            const message = [
+              `From: The Glided Pantry <${user}>`,
+              `To: <${payload.to}>`,
+              `Subject: ${payload.subject}`,
+              "MIME-Version: 1.0",
+              'Content-Type: text/html; charset="UTF-8"',
+              "Content-Transfer-Encoding: 8bit",
+              "",
+              html,
+              ".",
+            ].join("\r\n");
+
+            socket.write(message + "\r\n");
+            await waitFor([250]);
+            await command("QUIT", [221]);
+            socket.end();
+            resolve();
+          } catch (error) {
+            socket.destroy();
+            reject(error);
+          }
+        })();
+      },
+    );
+  });
 
   return { sent: true as const };
 }
