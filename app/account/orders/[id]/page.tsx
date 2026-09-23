@@ -17,7 +17,7 @@ export default async function AccountOrderPage({ params }: Props) {
     .from("orders")
     .select(`
       id,order_number,status,payment_status,fulfilment_status,total_cents,subtotal_cents,
-      shipping_cents,discount_cents,tax_cents,shipping_method_snapshot,shipping_address,created_at,
+      shipping_cents,discount_cents,tax_cents,shipping_method_snapshot,shipping_address,tracking_reference,dispatched_at,created_at,
       order_items(id,product_name_snapshot,variant_name_snapshot,sku_snapshot,quantity,unit_price_cents,total_price_cents)
     `)
     .eq("id", id)
@@ -31,10 +31,23 @@ export default async function AccountOrderPage({ params }: Props) {
       <section className="section-wrap py-20">
         <span className="eyebrow">Order</span>
         <h1 className="display-font mt-5 text-5xl font-semibold tracking-[-.05em]">{order.order_number}</h1>
-        <p className="mt-4 text-stone-500">
-          {order.status} · {order.payment_status} · {order.fulfilment_status}
-          {order.shipping_method_snapshot ? ` · ${order.shipping_method_snapshot}` : ""}
-        </p>
+        <div className="account-order-status mt-5">
+          <span><b>Order</b>{order.status}</span>
+          <span><b>Payment</b>{order.payment_status}</span>
+          <span><b>Delivery</b>{order.fulfilment_status}</span>
+        </div>
+
+        {order.shipping_method_snapshot ? (
+          <p className="mt-4 text-sm text-stone-400">{order.shipping_method_snapshot}</p>
+        ) : null}
+
+        {order.tracking_reference ? (
+          <div className="account-tracking mt-5">
+            <span>Tracking / delivery reference</span>
+            <strong>{order.tracking_reference}</strong>
+            {order.dispatched_at ? <small>Dispatched {new Date(order.dispatched_at).toLocaleString("en-ZA")}</small> : null}
+          </div>
+        ) : null}
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="grid gap-3">
