@@ -5723,3 +5723,100 @@ main,
     inset 0 1px 0 rgba(255,255,255,.07),
     0 16px 35px rgba(34,28,24,.12);
 }
+
+
+/* =========================================================
+   Accessibility hardening — light pantry surfaces
+   ========================================================= */
+
+/* The floating header is fully removed from the visual/interaction stack
+   while the navigation drawer is open. */
+.pantry-navbar-shell.is-menu-open {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: translateY(-.75rem) !important;
+}
+
+.menu-scrim {
+  background: rgba(31, 26, 22, .34);
+  backdrop-filter: blur(3px);
+}
+
+.menu-panel {
+  z-index: 100;
+}
+
+/* Public-facing copy must remain readable over the marble treatment.
+   Dark controls keep their own explicit light text rules. */
+.site-shell main:not(.admin-shell):not(.auth-page) :where(
+  p,
+  small,
+  label,
+  legend,
+  figcaption,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6
+)[class*="text-white"] {
+  color: #171513 !important;
+}
+
+.site-shell main:not(.admin-shell):not(.auth-page) :where(
+  p,
+  small,
+  label,
+  legend,
+  figcaption
+)[class*="text-stone-"] {
+  color: rgba(23, 21, 19, .72) !important;
+}
+
+/* Inputs and message surfaces should never visually disappear into marble. */
+.site-shell main:not(.admin-shell):not(.auth-page) :where(
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select
+) {
+  color: #171513;
+}
+
+.site-shell main:not(.admin-shell):not(.auth-page) :where(
+  [role="alert"],
+  [role="status"],
+  .account-alert,
+  .assistant-error,
+  .business-error,
+  .business-success,
+  .pantry-product-error
+) {
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+}
+
+.site-shell main:not(.admin-shell):not(.auth-page) [role="alert"],
+.site-shell main:not(.admin-shell):not(.auth-page) [role="status"] {
+  border: 1px solid rgba(38, 32, 28, .18);
+  background: rgba(252, 250, 247, .98);
+  box-shadow: 0 14px 34px rgba(48, 39, 32, .10);
+}
+
+/* Make the cart's state obvious even at a glance. */
+.pantry-cart-control:has(.pantry-cart-count) {
+  border-color: rgba(155, 101, 24, .34);
+  background: rgba(250, 244, 232, .96);
+}
+
+.pantry-cart-count {
+  min-width: 1.45rem;
+  height: 1.45rem;
+  top: -.5rem;
+  right: -.52rem;
+  color: #fffdf9;
+  background: #7f5013;
+  border-color: #fffdf9;
+  box-shadow: 0 6px 16px rgba(63, 42, 15, .30);
+}
