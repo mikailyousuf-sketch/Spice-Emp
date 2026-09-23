@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCartSnapshot } from "@/lib/cart";
 import { getCurrentUserId } from "@/lib/auth";
