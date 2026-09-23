@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCartSnapshot } from "@/lib/cart";
 import { getCurrentUserId } from "@/lib/auth";
 import { FixedShippingPicker } from "@/components/checkout/fixed-shipping-picker";
+import { CheckoutControls } from "@/components/checkout/checkout-controls";
 import { createOrder } from "./actions";
 
 type Props = { searchParams: Promise<{ error?: string }> };
@@ -85,7 +86,7 @@ export default async function CheckoutPage({ searchParams }: Props) {
               <Field label="Order notes (optional)"><textarea name="notes" rows={4} className="field resize-y" /></Field>
             </div>
 
-            <div className="glass-soft rounded-[2rem] p-6 sm:p-8">
+            <div id="checkout-shipping" className="glass-soft rounded-[2rem] p-6 sm:p-8">
               <p className="display-font text-2xl font-semibold">Delivery method</p>
               <p className="mt-2 text-sm text-stone-500">
                 Choose door delivery, PUDO locker pickup, or Uber when local delivery is online.
@@ -133,12 +134,7 @@ export default async function CheckoutPage({ searchParams }: Props) {
                 );
               })}
             </div>
-            <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-5">
-              <span className="text-stone-400">Subtotal</span>
-              <span className="text-lg font-semibold">R{(subtotal / 100).toFixed(2)}</span>
-            </div>
-            <button className="btn-primary mt-6 w-full" type="submit">Continue to payment</button>
-            <Link href="/cart" className="btn-secondary mt-3 w-full">Back to cart</Link>
+            <CheckoutControls subtotalCents={subtotal} />
           </aside>
         </form>
       </section>
