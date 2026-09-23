@@ -47,6 +47,7 @@ export default async function AdminPage() {
     { count: aiSearchesToday },
     { count: aiSearchesWeek },
     { count: aiSearchesMonth },
+    { count: aiNoMatchMonth },
     { data: recentAiSearches },
     { data: recentWholesale },
   ] = await Promise.all([
@@ -112,7 +113,13 @@ export default async function AdminPage() {
 
     supabase
       .from("assistant_queries")
-      .select("id,query_text,created_at")
+      .select("*", { count: "exact", head: true })
+      .eq("strong_match", false)
+      .gte("created_at", monthStart),
+
+    supabase
+      .from("assistant_queries")
+      .select("id,query_text,created_at,strong_match")
       .order("created_at", { ascending: false })
       .limit(5),
 
@@ -186,7 +193,7 @@ export default async function AdminPage() {
       type: "AI search",
       title: search.query_text,
       detail: "Customer pantry search",
-      status: "search",
+      status: search.strong_match ? "matched" : "no match",
       createdAt: search.created_at,
       href: null,
     })),
@@ -255,7 +262,7 @@ export default async function AdminPage() {
         <Metric
           label="AI searches today"
           value={String(aiSearchesToday ?? 0)}
-          detail={`${aiSearchesWeek ?? 0} this week · ${aiSearchesMonth ?? 0} this month`}
+          detail={`${aiSearchesWeek ?? 0} this week · ${aiNoMatchMonth ?? 0} no-match this month`}
         />
         <Metric
           label="Uber delivery"
@@ -434,6 +441,7 @@ export default async function AdminPage() {
           </h2>
           <p className="mt-2 text-sm text-stone-500">
             Useful demand signals for future products and catalogue wording.
+            {aiNoMatchMonth ? ` ${aiNoMatchMonth} searches this month had no strong catalogue match.` : ""}
           </p>
 
           <div className="mt-5 grid gap-3">
