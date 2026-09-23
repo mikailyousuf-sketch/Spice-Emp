@@ -51,7 +51,7 @@ export class PaystackProvider implements PaymentProvider {
         email: input.email,
         amount: String(input.amountCents),
         currency: input.currency,
-        reference: input.orderNumber,
+        reference: `${input.orderNumber}-${input.attemptId.slice(0, 8)}`,
         callback_url: input.successUrl,
         metadata: JSON.stringify({
           order_id: input.orderId,
