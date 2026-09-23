@@ -36,7 +36,6 @@ export default async function AdminOrdersPage() {
             {order.shipping_method_snapshot ? (
               <p className="admin-order-method">{order.shipping_method_snapshot}</p>
             ) : null}
-            </div>
           </Link>
         )) : <div className="glass-soft rounded-2xl p-8 text-stone-500">No orders yet.</div>}
       </div>
