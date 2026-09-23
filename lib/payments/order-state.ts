@@ -1,5 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendOrderConfirmationEmail } from "@/lib/notifications/email";
 
 export async function markOrderPaid(orderId: string, attemptId: string, raw: unknown) {
   const admin = createAdminClient();
@@ -13,7 +14,7 @@ export async function markOrderPaid(orderId: string, attemptId: string, raw: unk
     })
     .eq("id", attemptId);
 
-  await admin
+  const { data: updatedOrder } = await admin
     .from("orders")
     .update({
       status: "confirmed",
@@ -21,8 +22,17 @@ export async function markOrderPaid(orderId: string, attemptId: string, raw: unk
       updated_at: new Date().toISOString(),
     })
     .eq("id", orderId)
-    .neq("payment_status", "paid");
+    .neq("payment_status", "paid")
+    .select("email,order_number,total_cents,shipping_method_snapshot,order_access_token")
+    .maybeSingle();
 
+  if (updatedOrder) {
+    try {
+      await sendOrderConfirmationEmail(updatedOrder);
+    } catch (error) {
+      console.error("[email] order confirmation failed", error);
+    }
+  }
 }
 
 export async function cancelOrderAndRestoreStock(
