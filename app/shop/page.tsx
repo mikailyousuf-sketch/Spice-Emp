@@ -1,6 +1,7 @@
 import { ProductCard } from "@/components/products/product-card";
 import { FloatingFilterBar } from "@/components/shop/floating-filter-bar";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type Props = {
   searchParams: Promise<{
@@ -22,6 +23,20 @@ const productSelect = `
 
 export const metadata = { title: "Shop" };
 
+function topQueries(rows: Array<{ query_text: string }> | null | undefined) {
+  const counts = new Map<string, number>();
+  for (const row of rows ?? []) {
+    const query = row.query_text.trim().toLowerCase();
+    if (!query) continue;
+    counts.set(query, (counts.get(query) ?? 0) + 1);
+  }
+
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 6)
+    .map(([query]) => query);
+}
+
 function intersectSets(sets: Set<string>[]) {
   if (!sets.length) return null;
   const [first, ...rest] = sets;
@@ -31,7 +46,9 @@ function intersectSets(sets: Set<string>[]) {
 export default async function ShopPage({ searchParams }: Props) {
   const filters = await searchParams;
   const supabase = await createClient();
+  const admin = createAdminClient();
   const searchTerm = filters.q?.trim();
+  const trendingSince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
   const [
     { data: types },
@@ -39,13 +56,17 @@ export default async function ShopPage({ searchParams }: Props) {
     { data: foodTypes },
     { data: flavours },
     { data: cookingMethods },
+    { data: trendingRows },
   ] = await Promise.all([
     supabase.from("product_types").select("id,name").order("name"),
     supabase.from("cuisines").select("id,name").order("name"),
     supabase.from("food_types").select("id,name").order("name"),
     supabase.from("flavours").select("id,name").order("name"),
     supabase.from("cooking_methods").select("id,name").order("name"),
+    admin.from("product_searches").select("query_text").gte("created_at", trendingSince).limit(500),
   ]);
+
+  const trending = topQueries(trendingRows);
 
   const relationshipQueries: Array<PromiseLike<{ data: Array<{ product_id: string }> | null }>> = [];
   if (filters.cuisine) relationshipQueries.push(supabase.from("product_cuisines").select("product_id").eq("cuisine_id", filters.cuisine));
@@ -70,18 +91,27 @@ export default async function ShopPage({ searchParams }: Props) {
   let errorMessage: string | null = null;
 
   if (searchTerm) {
-    const { data: aliases } = await supabase.from("product_aliases").select("product_id").ilike("alias", `%${searchTerm}%`);
-    const aliasIds = [...new Set((aliases ?? []).map(row => row.product_id))];
+    const { data: fuzzy, error: fuzzyError } = await supabase.rpc("search_catalogue", {
+      search_term: searchTerm,
+      result_limit: 100,
+    });
 
-    const [nameResult, aliasResult] = await Promise.all([
-      makeQuery().ilike("name", `%${searchTerm}%`),
-      aliasIds.length ? makeQuery().in("id", aliasIds) : Promise.resolve({ data: [], error: null }),
-    ]);
+    errorMessage = fuzzyError?.message ?? null;
 
-    errorMessage = nameResult.error?.message ?? aliasResult.error?.message ?? null;
-    products = Array.from(
-      new Map([...(nameResult.data ?? []), ...(aliasResult.data ?? [])].map(product => [product.id, product])).values(),
-    );
+    if (!fuzzyError && fuzzy?.length) {
+      const rankedIds = fuzzy.map((row: { product_id: string }) => row.product_id);
+      const rank = new Map(rankedIds.map((id: string, index: number) => [id, index]));
+      const result = await makeQuery().in("id", rankedIds);
+      errorMessage = result.error?.message ?? null;
+      products = (result.data ?? []).sort(
+        (a, b) => (rank.get(a.id) ?? 9999) - (rank.get(b.id) ?? 9999),
+      );
+    }
+
+    await admin.from("product_searches").insert({
+      query_text: searchTerm,
+      result_count: products.length,
+    });
   } else {
     const result = await makeQuery();
     products = result.data ?? [];
@@ -109,6 +139,7 @@ export default async function ShopPage({ searchParams }: Props) {
             foodTypes={foodTypes ?? []}
             flavours={flavours ?? []}
             cookingMethods={cookingMethods ?? []}
+            trending={trending}
           />
         </div>
 
