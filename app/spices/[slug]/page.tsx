@@ -221,6 +221,10 @@ export default async function SpicePage({ params, searchParams }: Props) {
 
             <div className="pantry-product-notes">
               <p>Delivery options are calculated at checkout.</p>
+              <p>
+                Allergy or dietary restriction? Always check the physical label before use.
+                <Link href="/allergens"> Read our allergen notice →</Link>
+              </p>
               <Link href="/business">Need larger quantities? Visit wholesale →</Link>
             </div>
           </div>
