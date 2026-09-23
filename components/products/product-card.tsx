@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { addToCart } from "@/app/cart/actions";
+import { CartAddButton } from "@/components/cart/cart-add-button";
 import { getProductImageUrl } from "@/lib/products/image-url";
 
 type Variant = {
@@ -70,9 +71,9 @@ export function ProductCard({ product }: ProductCardProps) {
         <form action={addToCart} className="mt-3">
           <input type="hidden" name="variantId" value={cheapest.id} />
           <input type="hidden" name="quantity" value="1" />
-          <button className="shelf-quick-add" type="submit">
+          <CartAddButton className="shelf-quick-add">
             Quick add <span aria-hidden="true">＋</span>
-          </button>
+          </CartAddButton>
         </form>
       ) : null}
     </article>

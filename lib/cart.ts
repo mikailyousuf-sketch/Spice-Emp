@@ -89,3 +89,33 @@ export async function clearCartCookie() {
   const cookieStore = await cookies();
   cookieStore.delete(CART_COOKIE);
 }
+
+
+export async function getCartItemCount() {
+  const token = await getCartToken();
+  if (!token) return 0;
+
+  const admin = createAdminClient();
+  const { data: cart } = await admin
+    .from("carts")
+    .select("id")
+    .eq("cart_token", token)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (!cart) return 0;
+
+  const { data: items, error } = await admin
+    .from("cart_items")
+    .select("quantity")
+    .eq("cart_id", cart.id);
+
+  if (error) throw new Error(error.message);
+
+  return Math.round(
+    (items ?? []).reduce(
+      (sum, item) => sum + Math.max(0, Number(item.quantity) || 0),
+      0,
+    ),
+  );
+}

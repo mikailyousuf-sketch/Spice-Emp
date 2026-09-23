@@ -52,13 +52,22 @@ export function Navbar() {
       if (document.visibilityState === "visible") void refreshCartCount();
     };
 
+    const onCartAdd = (event: Event) => {
+      const detail = (event as CustomEvent<{ quantity?: number }>).detail;
+      const quantity = Math.max(1, Number(detail?.quantity) || 1);
+      setCartCount((current) => current + quantity);
+      window.setTimeout(() => void refreshCartCount(), 350);
+    };
+
     window.addEventListener("focus", onFocus);
+    window.addEventListener("pantry:cart-add", onCartAdd as EventListener);
     document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       cancelled = true;
       window.clearInterval(interval);
       window.removeEventListener("focus", onFocus);
+      window.removeEventListener("pantry:cart-add", onCartAdd as EventListener);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [pathname]);

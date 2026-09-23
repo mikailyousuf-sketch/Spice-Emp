@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { addToCart } from "@/app/cart/actions";
+import { CartAddButton } from "@/components/cart/cart-add-button";
 import { getProductImageUrl } from "@/lib/products/image-url";
 import { createClient } from "@/lib/supabase/server";
 
@@ -177,9 +178,9 @@ export default async function SpicePage({ params, searchParams }: Props) {
                             disabled={!inStock}
                           />
                         </label>
-                        <button type="submit" disabled={!inStock}>
+                        <CartAddButton disabled={!inStock}>
                           {inStock ? "Add to cart +" : "Sold out"}
-                        </button>
+                        </CartAddButton>
                       </form>
                     </article>
                   );
