@@ -71,6 +71,7 @@ export async function retryPayment(formData: FormData) {
       status: "pending",
       payment_status: "pending",
       fulfilment_status: "unfulfilled",
+      stock_released_at: null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", order.id);
