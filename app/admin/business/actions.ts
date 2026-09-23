@@ -370,3 +370,64 @@ export async function convertAcceptedQuoteToOrder(formData: FormData) {
   revalidatePath("/admin/business");
   redirect(`/admin/orders/${order.id}`);
 }
+
+
+export async function cloneWholesaleQuote(formData: FormData) {
+  await requireAdmin();
+
+  const quoteId = z.string().uuid().parse(formData.get("quoteId"));
+  const enquiryId = z.string().uuid().parse(formData.get("enquiryId"));
+  const admin = createAdminClient();
+
+  const { data: source, error } = await admin
+    .from("wholesale_quotes")
+    .select("id,subtotal_cents,discount_cents,shipping_cents,tax_cents,total_cents,customer_notes,admin_notes,wholesale_quote_items(product_id,product_name_snapshot,quantity_kg,unit_price_cents_per_kg,total_price_cents,sort_order)")
+    .eq("id", quoteId)
+    .eq("enquiry_id", enquiryId)
+    .maybeSingle();
+
+  if (error || !source) redirect(detailUrl(enquiryId, error?.message || "Quote not found."));
+
+  const { data: quote, error: createError } = await admin
+    .from("wholesale_quotes")
+    .insert({
+      enquiry_id: enquiryId,
+      quote_number: quoteNumber(),
+      status: "draft",
+      subtotal_cents: source.subtotal_cents,
+      discount_cents: source.discount_cents,
+      shipping_cents: source.shipping_cents,
+      tax_cents: source.tax_cents,
+      total_cents: source.total_cents,
+      customer_notes: source.customer_notes,
+      admin_notes: source.admin_notes,
+    })
+    .select("id")
+    .single();
+
+  if (createError || !quote) redirect(detailUrl(enquiryId, createError?.message || "Could not create repeat quote."));
+
+  const items = (source.wholesale_quote_items ?? []).map((item) => ({
+    quote_id: quote.id,
+    product_id: item.product_id,
+    product_name_snapshot: item.product_name_snapshot,
+    quantity_kg: item.quantity_kg,
+    unit_price_cents_per_kg: item.unit_price_cents_per_kg,
+    total_price_cents: item.total_price_cents,
+    sort_order: item.sort_order,
+  }));
+
+  if (items.length) {
+    const { error: itemError } = await admin.from("wholesale_quote_items").insert(items);
+    if (itemError) redirect(detailUrl(enquiryId, itemError.message));
+  }
+
+  await admin
+    .from("business_enquiries")
+    .update({ status: "reviewing", updated_at: new Date().toISOString() })
+    .eq("id", enquiryId);
+
+  revalidatePath("/admin/business");
+  revalidatePath("/admin/business/" + enquiryId);
+  redirect(detailUrl(enquiryId));
+}
