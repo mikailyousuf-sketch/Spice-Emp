@@ -1,23 +1,31 @@
+import Link from "next/link";
+
 export const metadata = {
   title: "Contact",
-  description: "Get in touch with Spice Emp for retail, wholesale or partnership enquiries.",
+  description: "Contact The Glided Pantry for retail support, wholesale supply or partnerships.",
 };
 
 const cards = [
   {
-    title: "Retail & support",
-    body: "Questions about products, ordering or the platform.",
-    status: "Contact channel being configured",
+    title: "Orders & support",
+    body: "Already ordered? Your account keeps your order status, delivery method and tracking information together.",
+    href: "/account/orders",
+    action: "View my orders",
+    note: "Direct support contact details will be published before public launch.",
   },
   {
     title: "Wholesale",
-    body: "Restaurants, caterers, hotels, manufacturers and bulk buyers.",
-    status: "Wholesale onboarding in development",
+    body: "Restaurants, caterers, hospitality groups, retailers and food businesses can request bulk pricing directly.",
+    href: "/business",
+    action: "Request wholesale pricing",
+    note: "Quote requests go directly into the wholesale admin queue.",
   },
   {
     title: "Partnerships",
-    body: "Supply, logistics, technology or commercial partnerships.",
-    status: "Partnership channel being configured",
+    body: "Supply, logistics, technology and commercial partnership enquiries will have a dedicated channel.",
+    href: null,
+    action: null,
+    note: "Partnership contact details will be published before public launch.",
   },
 ];
 
@@ -27,22 +35,29 @@ export default function ContactPage() {
       <section className="section-wrap py-20 sm:py-28">
         <span className="eyebrow">Contact</span>
         <h1 className="display-font mt-6 max-w-4xl text-balance text-6xl font-semibold tracking-[-.06em] sm:text-7xl">
-          Let&apos;s talk flavour, supply or scale.
+          The right place for every enquiry.
         </h1>
         <p className="mt-8 max-w-2xl text-lg leading-8 text-stone-400">
-          We&apos;re setting up the production contact channels now. This page already separates
-          retail, wholesale and partnership enquiries so the backend can route them correctly later.
+          Order support and wholesale already have dedicated routes inside The Glided Pantry.
+          Public support and partnership contact details will be added here before launch.
         </p>
       </section>
 
       <section className="section-wrap grid gap-5 pb-28 lg:grid-cols-3">
-        {cards.map((card) => (
-          <article key={card.title} className="glass-soft rounded-[2rem] p-7">
-            <div className="mb-14 size-11 rounded-2xl border border-orange-200/15 bg-orange-300/10" />
-            <h2 className="display-font text-2xl font-semibold">{card.title}</h2>
+        {cards.map((card, index) => (
+          <article key={card.title} className="glass-soft contact-card rounded-[2rem] p-7">
+            <span className="contact-card-number">0{index + 1}</span>
+            <h2 className="display-font mt-10 text-2xl font-semibold">{card.title}</h2>
             <p className="mt-3 text-sm leading-6 text-stone-400">{card.body}</p>
-            <p className="mt-8 border-t border-white/10 pt-4 text-xs uppercase tracking-[.14em] text-stone-600">
-              {card.status}
+
+            {card.href && card.action ? (
+              <Link href={card.href} className="contact-card-action">
+                {card.action} <span>→</span>
+              </Link>
+            ) : null}
+
+            <p className="contact-card-note">
+              {card.note}
             </p>
           </article>
         ))}
