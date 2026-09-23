@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getCurrentUserId } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendWholesaleAcknowledgementEmail } from "@/lib/notifications/email";
 
 const itemSchema = z.object({
   productId: z.string().uuid(),
@@ -106,6 +107,16 @@ export async function submitBusinessEnquiry(formData: FormData) {
 
   if (error) {
     redirect("/business?error=" + encodeURIComponent(error.message));
+  }
+
+  try {
+    await sendWholesaleAcknowledgementEmail({
+      email: parsed.data.email,
+      contact_name: parsed.data.contactName,
+      company_name: parsed.data.companyName,
+    });
+  } catch (emailError) {
+    console.error("[email] wholesale acknowledgement failed", emailError);
   }
 
   redirect("/business?sent=1");
