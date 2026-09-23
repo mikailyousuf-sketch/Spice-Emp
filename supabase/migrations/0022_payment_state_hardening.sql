@@ -66,7 +66,7 @@ as $$
 declare
   order_row public.orders%rowtype;
   item record;
-  affected_count integer;
+  variant_row public.product_variants%rowtype;
 begin
   select *
   into order_row
@@ -90,19 +90,45 @@ begin
         and variant_id is not null
       order by id
     loop
+      select *
+      into variant_row
+      from public.product_variants
+      where id = item.variant_id
+      for update;
+
+      if not found
+        or not variant_row.is_active
+        or variant_row.stock_quantity < item.quantity
+      then
+        update public.orders
+        set
+          status = 'cancelled',
+          payment_status = 'paid',
+          fulfilment_status = 'cancelled',
+          notes = concat_ws(
+            E'\n',
+            nullif(notes, ''),
+            'PAYMENT RECEIVED AFTER STOCK RELEASE: manual customer contact/refund required.'
+          ),
+          updated_at = now()
+        where id = target_order_id;
+
+        return 'paid_stock_unavailable';
+      end if;
+    end loop;
+
+    for item in
+      select variant_id, quantity
+      from public.order_items
+      where order_id = target_order_id
+        and variant_id is not null
+      order by id
+    loop
       update public.product_variants
       set
         stock_quantity = stock_quantity - item.quantity,
         updated_at = now()
-      where id = item.variant_id
-        and is_active = true
-        and stock_quantity >= item.quantity;
-
-      get diagnostics affected_count = row_count;
-
-      if affected_count <> 1 then
-        raise exception 'stock_unavailable';
-      end if;
+      where id = item.variant_id;
     end loop;
   end if;
 
@@ -119,12 +145,6 @@ begin
   where id = target_order_id;
 
   return 'paid';
-exception
-  when others then
-    if sqlerrm = 'stock_unavailable' then
-      return 'stock_unavailable';
-    end if;
-    raise;
 end;
 $$;
 
