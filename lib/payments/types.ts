@@ -3,6 +3,7 @@ export type PaymentProviderName = "yoco" | "paystack";
 export type CreatePaymentInput = {
   orderId: string;
   orderNumber: string;
+  attemptId: string;
   amountCents: number;
   currency: "ZAR";
   email: string;
