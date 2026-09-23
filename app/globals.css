@@ -4319,3 +4319,184 @@ main,
     grid-template-columns: 1fr;
   }
 }
+
+
+/* =========================================================
+   Fixed shipping methods + Uber radius delivery
+   ========================================================= */
+
+.fixed-shipping-picker {
+  margin-top: 1rem;
+}
+
+.fixed-shipping-list {
+  display: grid;
+  gap: .65rem;
+}
+
+.fixed-shipping-option {
+  display: grid;
+  gap: .55rem;
+}
+
+.fixed-shipping-option > button,
+.uber-available {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.05rem;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 1rem;
+  color: rgba(255,255,255,.80);
+  background: rgba(255,255,255,.035);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease, transform .2s ease;
+}
+
+.fixed-shipping-option > button:hover,
+.uber-available:hover {
+  transform: translateY(-1px);
+}
+
+.fixed-shipping-option > button.is-selected,
+.uber-available.is-selected {
+  border-color: rgba(220,164,66,.50);
+  background: rgba(211,138,26,.11);
+}
+
+.fixed-shipping-option > button span,
+.uber-available span {
+  display: grid;
+  gap: .16rem;
+}
+
+.fixed-shipping-option > button strong,
+.uber-available strong {
+  color: #fffaf2;
+  font-size: .78rem;
+}
+
+.fixed-shipping-option > button small,
+.uber-available small {
+  color: rgba(255,255,255,.48);
+  font-size: .62rem;
+  line-height: 1.45;
+}
+
+.fixed-shipping-option > button b,
+.uber-available b {
+  color: #efc979;
+  font-size: .86rem;
+}
+
+.pudo-locker-field {
+  display: grid;
+  gap: .4rem;
+  padding: .8rem .9rem;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: .9rem;
+  background: rgba(0,0,0,.18);
+}
+
+.pudo-locker-field span {
+  color: rgba(255,255,255,.56);
+  font-size: .55rem;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.pudo-locker-field input {
+  min-height: 2.8rem;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: .75rem;
+  padding: .68rem .8rem;
+  color: #fff;
+  background: rgba(255,255,255,.05);
+  outline: none;
+}
+
+.pudo-locker-field input::placeholder {
+  color: rgba(255,255,255,.32);
+}
+
+.uber-shipping-card {
+  margin-top: .75rem;
+  padding: 1rem;
+  border: 1px solid rgba(80,183,105,.18);
+  border-radius: 1rem;
+  background: rgba(49,125,68,.08);
+}
+
+.uber-shipping-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.uber-shipping-head > span {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .12rem .5rem;
+  align-items: center;
+}
+
+.uber-shipping-head i {
+  grid-row: 1 / span 2;
+  color: #76d98d;
+  font-size: .6rem;
+  font-style: normal;
+}
+
+.uber-shipping-head strong {
+  color: #f7fff8;
+  font-size: .78rem;
+}
+
+.uber-shipping-head small {
+  color: rgba(255,255,255,.48);
+  font-size: .6rem;
+}
+
+.uber-shipping-head > b {
+  color: #8ee59f;
+  font-size: .56rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.uber-check-button {
+  width: 100%;
+  min-height: 2.9rem;
+  margin-top: .8rem;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 999px;
+  color: #171513;
+  background: #f4eee5;
+  font-size: .6rem;
+  font-weight: 800;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.uber-check-button:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+.uber-available {
+  margin-top: .8rem;
+}
+
+.uber-shipping-message,
+.fixed-shipping-help {
+  margin: .7rem 0 0;
+  color: rgba(255,255,255,.46);
+  font-size: .64rem;
+  line-height: 1.5;
+}
