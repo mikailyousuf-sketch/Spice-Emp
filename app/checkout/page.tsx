@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCartSnapshot } from "@/lib/cart";
 import { getCurrentUserId } from "@/lib/auth";
@@ -133,7 +134,17 @@ export default async function CheckoutPage({ searchParams }: Props) {
                 );
               })}
             </div>
+            <div className="checkout-trust-strip">
+              <span>Secure payment</span>
+              <span>Review before paying</span>
+              <span>Privacy protected</span>
+            </div>
             <CheckoutControls subtotalCents={subtotal} />
+            <p className="checkout-legal-copy">
+              By continuing, you confirm that you have reviewed your order and agree to the
+              <Link href="/terms"> Terms</Link>, <Link href="/shipping">Shipping Policy</Link> and
+              <Link href="/returns"> Returns & Refunds Policy</Link>.
+            </p>
           </aside>
         </form>
       </section>
