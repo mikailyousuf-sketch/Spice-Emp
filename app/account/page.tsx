@@ -67,7 +67,7 @@ export default async function AccountPage({ searchParams }: Props) {
           <div>
             <span className="eyebrow">My pantry</span>
             <h1 className="display-font mt-4 text-5xl font-semibold tracking-[-.05em] sm:text-6xl">
-              {profile?.first_name ? \`Welcome, \${profile.first_name}.\` : "Your account."}
+              {profile?.first_name ? `Welcome, ${profile.first_name}.` : "Your account."}
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-7">
               Manage your details, delivery addresses and orders from one place.
@@ -140,7 +140,7 @@ export default async function AccountPage({ searchParams }: Props) {
 
             <div className="mt-6 grid gap-3">
               {recentOrders?.length ? recentOrders.map((order) => (
-                <Link href={\`/account/orders/\${order.id}\`} key={order.id} className="account-order-row">
+                <Link href={`/account/orders/${order.id}`} key={order.id} className="account-order-row">
                   <div>
                     <strong>{order.order_number}</strong>
                     <span>{new Date(order.created_at).toLocaleDateString("en-ZA")}</span>
@@ -177,16 +177,16 @@ export default async function AccountPage({ searchParams }: Props) {
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <span>{address.is_default_shipping ? "Default delivery" : address.label || "Saved address"}</span>
-                      <h3>{address.label || \`\${address.first_name} \${address.last_name}\`}</h3>
+                      <h3>{address.label || `${address.first_name} ${address.last_name}`}</h3>
                     </div>
                     {address.is_default_shipping ? <b>Default</b> : null}
                   </div>
 
                   <p>
                     {address.line1}
-                    {address.line2 ? \`, \${address.line2}\` : ""}
+                    {address.line2 ? `, ${address.line2}` : ""}
                     <br />
-                    {address.suburb ? \`\${address.suburb}, \` : ""}
+                    {address.suburb ? `${address.suburb}, ` : ""}
                     {address.city}, {address.province} {address.postal_code}
                   </p>
 
