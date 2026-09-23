@@ -81,6 +81,7 @@ Run the SQL files in order using the Supabase SQL editor, or link the Supabase C
 14. `supabase/migrations/0014_assistant_queries.sql`
 15. `supabase/migrations/0015_business_enquiries.sql`
 16. `supabase/migrations/0016_unify_courier_guy_lockers.sql`
+17. `supabase/migrations/0017_fixed_shipping_methods.sql`
 
 Do not skip migration 0002. It creates profile/user-role automation and the admin write policies.
 Migration 0004 creates the public product-image Storage bucket and admin-only write policies.
@@ -93,23 +94,19 @@ Migration 0013 aligns product-image Storage limits with the admin upload flow.
 Migration 0014 stores signed-in pantry-assistant query analytics.
 Migration 0015 adds wholesale/business quote enquiries and approval workflow.
 Migration 0016 normalises legacy locker shipment rows under The Courier Guy provider.
+Migration 0017 replaces live courier quoting with fixed Door-to-door, PUDO locker and configurable Uber delivery methods.
 
-## Courier Guy / PUDO
+## Shipping
 
-The shipping layer supports live The Courier Guy door and locker delivery. Checkout requests live rates from the active cart and the selected rate is verified again server-side before payment.
+Checkout uses fixed store-controlled delivery methods rather than courier APIs:
 
-Paid courier orders are then submitted automatically to The Courier Guy. Failed shipment submissions remain visible in the Admin shipping queue and can be retried.
+- Door to door: R120, estimated 3–5 working days, fulfilled manually through The Courier Guy
+- PUDO locker pickup: R75, with the customer entering their preferred locker or pickup area
+- Uber delivery: configurable up to R100 and shown only while the admin has Uber delivery switched online
 
-Configure the The Courier Guy API key and account code, the collection/origin address, and the origin contact details in `.env.local`.
+Uber delivery uses a configurable dispatch latitude/longitude and service radius in `/admin/shipping`. The customer verifies their current delivery location in the browser and the distance is checked again server-side before checkout can continue.
 
-Product variants require shipping weight, length, width and height before live courier rates can be requested.
-
-The server endpoints are:
-
-- `GET /api/shipping/lockers` for PUDO locker data
-- `POST /api/shipping/quotes` for live courier quotes based on the active cart
-
-Admin users can test The Courier Guy API connectivity from `/admin/shipping`.
+No Courier Guy or PUDO API credentials are required.
 
 ## Payment testing
 
