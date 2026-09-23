@@ -105,7 +105,6 @@ export function CheckoutControls({ subtotalCents }: { subtotalCents: number }) {
         className="sr-only"
         tabIndex={-1}
         aria-hidden="true"
-        disabled={submitting}
       >
         Submit order
       </button>
