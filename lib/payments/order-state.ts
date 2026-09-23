@@ -5,6 +5,30 @@ import { sendOrderConfirmationEmail } from "@/lib/notifications/email";
 export async function markOrderPaid(orderId: string, attemptId: string, raw: unknown) {
   const admin = createAdminClient();
 
+  const { data: transition, error: transitionError } = await admin.rpc(
+    "confirm_paid_order",
+    { target_order_id: orderId },
+  );
+
+  if (transitionError) {
+    throw new Error(transitionError.message);
+  }
+
+  if (transition === "stock_unavailable") {
+    await admin
+      .from("payment_attempts")
+      .update({
+        status: "succeeded",
+        raw_response: raw,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", attemptId);
+
+    throw new Error(
+      "Payment succeeded after stock was released, but the order could not be re-reserved. Manual intervention is required.",
+    );
+  }
+
   await admin
     .from("payment_attempts")
     .update({
@@ -14,16 +38,14 @@ export async function markOrderPaid(orderId: string, attemptId: string, raw: unk
     })
     .eq("id", attemptId);
 
+  if (transition !== "paid") {
+    return;
+  }
+
   const { data: updatedOrder } = await admin
     .from("orders")
-    .update({
-      status: "confirmed",
-      payment_status: "paid",
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", orderId)
-    .neq("payment_status", "paid")
     .select("email,order_number,total_cents,shipping_method_snapshot,order_access_token")
+    .eq("id", orderId)
     .maybeSingle();
 
   if (updatedOrder) {
@@ -43,34 +65,13 @@ export async function cancelOrderAndRestoreStock(
 ) {
   const admin = createAdminClient();
 
-  const { data: order } = await admin
-    .from("orders")
-    .select("id,status,payment_status,order_items(variant_id,quantity)")
-    .eq("id", orderId)
-    .maybeSingle();
+  const { error: releaseError } = await admin.rpc("release_order_stock", {
+    target_order_id: orderId,
+  });
 
-  if (!order || order.payment_status === "paid" || order.status === "cancelled") {
-    return;
+  if (releaseError) {
+    throw new Error(releaseError.message);
   }
-
-  for (const item of order.order_items ?? []) {
-    if (!item.variant_id) continue;
-
-    await admin.rpc("increment_variant_stock", {
-      target_variant_id: item.variant_id,
-      restore_quantity: Number(item.quantity),
-    });
-  }
-
-  await admin
-    .from("orders")
-    .update({
-      status: "cancelled",
-      payment_status: "failed",
-      fulfilment_status: "cancelled",
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", orderId);
 
   if (attemptId) {
     await admin
@@ -80,6 +81,7 @@ export async function cancelOrderAndRestoreStock(
         raw_response: raw ?? null,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", attemptId);
+      .eq("id", attemptId)
+      .neq("status", "succeeded");
   }
 }
