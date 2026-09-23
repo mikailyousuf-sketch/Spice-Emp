@@ -198,7 +198,7 @@ export async function POST(request: Request) {
   });
 
   const ranked = scored
-    .filter((item) => item.score > 0)
+    .filter((item) => item.score > 2)
     .sort((a, b) => b.score - a.score || Number(b.inStock) - Number(a.inStock))
     .slice(0, 6);
 
