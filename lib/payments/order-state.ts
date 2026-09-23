@@ -1,6 +1,5 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createShipmentForPaidOrder } from "@/lib/shipping/fulfilment";
 
 export async function markOrderPaid(orderId: string, attemptId: string, raw: unknown) {
   const admin = createAdminClient();
@@ -24,14 +23,6 @@ export async function markOrderPaid(orderId: string, attemptId: string, raw: unk
     .eq("id", orderId)
     .neq("payment_status", "paid");
 
-  try {
-    await createShipmentForPaidOrder(orderId);
-  } catch (error) {
-    console.error("Paid order shipment creation failed", {
-      orderId,
-      message: error instanceof Error ? error.message : "Unknown shipping error",
-    });
-  }
 }
 
 export async function cancelOrderAndRestoreStock(
