@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { addToCart } from "@/app/cart/actions";
 import { CartAddButton } from "@/components/cart/cart-add-button";
+import { RecentlyViewedTracker } from "@/components/products/recently-viewed-tracker";
 import { getProductImageUrl } from "@/lib/products/image-url";
 import { createClient } from "@/lib/supabase/server";
 
@@ -60,8 +61,20 @@ export default async function SpicePage({ params, searchParams }: Props) {
     .filter((variant) => Number(variant.stock_quantity) > 0)
     .sort((a, b) => a.retail_price_cents - b.retail_price_cents)[0];
 
+  const trackerImage = primaryVisual;
+  const trackerPrice = cheapest?.retail_price_cents ?? null;
+
   return (
     <main className="pantry-product-page">
+      <RecentlyViewedTracker
+        product={{
+          id: product.id,
+          name: product.name,
+          slug: product.slug,
+          imageUrl: trackerImage,
+          priceCents: trackerPrice,
+        }}
+      />
       <section className="section-wrap pantry-product-shell">
         <nav className="pantry-breadcrumb" aria-label="Breadcrumb">
           <Link href="/shop">The pantry</Link>
