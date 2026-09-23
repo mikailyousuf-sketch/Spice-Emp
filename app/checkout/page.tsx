@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCartSnapshot } from "@/lib/cart";
-import { ShippingQuotePicker } from "@/components/checkout/shipping-quote-picker";
+import { FixedShippingPicker } from "@/components/checkout/fixed-shipping-picker";
 import { createOrder } from "./actions";
 
 type Props = { searchParams: Promise<{ error?: string }> };
@@ -16,12 +16,20 @@ export default async function CheckoutPage({ searchParams }: Props) {
 
   const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
-  const { data: shippingMethods } = await supabase
-    .from("shipping_methods")
-    .select("id,name,description,fee_cents,free_above_cents,is_collection")
-    .eq("is_active", true)
-    .order("sort_order")
-    .order("name");
+  const [{ data: shippingMethods }, { data: shippingSettings }] = await Promise.all([
+    supabase
+      .from("shipping_methods")
+      .select("id,code,name,description,fee_cents")
+      .eq("is_active", true)
+      .in("code", ["door-to-door", "pudo-locker", "uber-delivery"])
+      .order("sort_order")
+      .order("name"),
+    supabase
+      .from("shipping_settings")
+      .select("uber_online,uber_origin_label,uber_origin_lat,uber_origin_lng,uber_radius_km,uber_fee_cents")
+      .eq("id", true)
+      .maybeSingle(),
+  ]);
 
   const subtotal = cart.items.reduce((sum, item) => {
     const variant = Array.isArray(item.product_variants) ? item.product_variants[0] : item.product_variants;
@@ -69,11 +77,11 @@ export default async function CheckoutPage({ searchParams }: Props) {
             <div className="glass-soft rounded-[2rem] p-6 sm:p-8">
               <p className="display-font text-2xl font-semibold">Delivery method</p>
               <p className="mt-2 text-sm text-stone-500">
-                Get a live Courier Guy door-delivery rate, choose a PUDO locker, or use an enabled collection option.
+                Choose door delivery, PUDO locker pickup, or Uber when local delivery is online.
               </p>
-              <ShippingQuotePicker
-                subtotalCents={subtotal}
-                collectionMethods={(shippingMethods ?? []).filter((method) => method.is_collection)}
+              <FixedShippingPicker
+                methods={shippingMethods ?? []}
+                uberSettings={shippingSettings}
               />
             </div>
 
