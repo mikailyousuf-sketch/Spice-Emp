@@ -246,17 +246,8 @@ export async function sendWholesaleQuote(formData: FormData) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
   const quoteUrl = siteUrl ? `${siteUrl}/wholesale/quote/${quote.access_token}` : "";
 
-  await admin
-    .from("wholesale_quotes")
-    .update({
-      status: "sent",
-      sent_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", quoteId);
-
   try {
-    await sendTransactionalEmail({
+    const delivery = await sendTransactionalEmail({
       to: enquiry.email,
       subject: `Wholesale quote ${quote.quote_number} · The Glided Pantry`,
       html: `
@@ -270,8 +261,22 @@ export async function sendWholesaleQuote(formData: FormData) {
         </div>
       `,
     });
+
+    if (!delivery.sent) {
+      redirect(detailUrl(enquiryId, "Quote email is not configured yet. Add the Gmail App Password before sending."));
+    }
+
+    await admin
+      .from("wholesale_quotes")
+      .update({
+        status: "sent",
+        sent_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", quoteId);
   } catch (emailError) {
     console.error("[email] wholesale quote send failed", emailError);
+    redirect(detailUrl(enquiryId, "The quote was saved but the email could not be sent."));
   }
 
   revalidatePath("/admin/business");
