@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getProductImageUrl } from "@/lib/products/image-url";
 
@@ -18,12 +17,11 @@ export async function GET(request: Request) {
 
   const q = parsed.data.q;
   const supabase = await createClient();
-  const admin = createAdminClient();
 
-  const [{ data: fuzzy }, { data: claimsData }] = await Promise.all([
-    supabase.rpc("search_catalogue", { search_term: q, result_limit: 8 }),
-    supabase.auth.getClaims(),
-  ]);
+  const { data: fuzzy } = await supabase.rpc("search_catalogue", {
+    search_term: q,
+    result_limit: 8,
+  });
 
   const ids = (fuzzy ?? []).map((row: { product_id: string }) => row.product_id);
   const scoreMap = new Map(
@@ -80,31 +78,7 @@ export async function GET(request: Request) {
     };
   });
 
-  const userId = claimsData?.claims?.sub ?? null;
-  await admin.from("product_searches").insert({
-    user_id: userId,
-    query_text: q,
-    result_count: results.length,
-  });
-
-  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const { data: recentSearches } = await admin
-    .from("product_searches")
-    .select("query_text")
-    .gte("created_at", since)
-    .limit(500);
-
-  const counts = new Map<string, number>();
-  for (const row of recentSearches ?? []) {
-    const value = String(row.query_text || "").trim().toLowerCase();
-    if (!value) continue;
-    counts.set(value, (counts.get(value) ?? 0) + 1);
-  }
-
-  const trending = [...counts.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, 5)
-    .map(([query]) => query);
+  const trending: string[] = [];
 
   return NextResponse.json({ results, trending });
 }
