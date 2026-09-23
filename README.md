@@ -82,6 +82,7 @@ Run the SQL files in order using the Supabase SQL editor, or link the Supabase C
 15. `supabase/migrations/0015_business_enquiries.sql`
 16. `supabase/migrations/0016_unify_courier_guy_lockers.sql`
 17. `supabase/migrations/0017_fixed_shipping_methods.sql`
+18. `supabase/migrations/0018_order_operations.sql`
 
 Do not skip migration 0002. It creates profile/user-role automation and the admin write policies.
 Migration 0004 creates the public product-image Storage bucket and admin-only write policies.
@@ -95,6 +96,7 @@ Migration 0014 stores signed-in pantry-assistant query analytics.
 Migration 0015 adds wholesale/business quote enquiries and approval workflow.
 Migration 0016 normalises legacy locker shipment rows under The Courier Guy provider.
 Migration 0017 replaces live courier quoting with fixed Door-to-door, PUDO locker and configurable Uber delivery methods.
+Migration 0018 adds admin order notes, tracking references and dispatch timestamps.
 
 ## Shipping
 
