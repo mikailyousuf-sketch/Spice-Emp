@@ -274,6 +274,7 @@ export async function createOrder(formData: FormData) {
     const payment = await provider.createPayment({
       orderId: order.id,
       orderNumber: order.order_number,
+      attemptId: attempt.id,
       amountCents: totalCents,
       currency: "ZAR",
       email: parsed.data.email,
