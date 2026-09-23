@@ -5383,3 +5383,234 @@ main,
   font-size: .58rem;
   line-height: 1.55;
 }
+
+
+/* =========================================================
+   Navigation overlap + live cart badge
+   ========================================================= */
+
+.pantry-navbar-shell {
+  transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+}
+
+.pantry-navbar-shell.is-menu-open {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-.65rem);
+}
+
+.menu-scrim {
+  z-index: 80;
+}
+
+.menu-panel {
+  z-index: 90;
+}
+
+.pantry-cart-control {
+  position: relative;
+}
+
+.pantry-cart-count {
+  position: absolute;
+  top: -.42rem;
+  right: -.46rem;
+  display: grid;
+  place-items: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 .32rem;
+  border: 2px solid rgba(248,245,240,.96);
+  border-radius: 999px;
+  color: #fff;
+  background: #9b6518;
+  box-shadow: 0 5px 14px rgba(63,42,15,.24);
+  font-size: .56rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -.02em;
+}
+
+/* =========================================================
+   Light marble surface contrast
+   ========================================================= */
+
+.site-shell > main:not(.admin-shell):not(.auth-page),
+.site-shell main:not(.admin-shell):not(.auth-page) {
+  color: #171513;
+}
+
+.site-shell main:not(.admin-shell):not(.auth-page) .glass,
+.site-shell main:not(.admin-shell):not(.auth-page) .glass-soft {
+  color: #171513;
+  border-color: rgba(38,32,28,.16) !important;
+  background: rgba(248,246,242,.90) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.94),
+    0 18px 45px rgba(45,38,33,.08) !important;
+  backdrop-filter: blur(18px) saturate(110%);
+}
+
+.site-shell main:not(.admin-shell):not(.auth-page) .glass .text-stone-600,
+.site-shell main:not(.admin-shell):not(.auth-page) .glass-soft .text-stone-600 {
+  color: rgba(23,21,19,.66) !important;
+}
+
+.site-shell main:not(.admin-shell):not(.auth-page) .glass .text-stone-500,
+.site-shell main:not(.admin-shell):not(.auth-page) .glass-soft .text-stone-500 {
+  color: rgba(23,21,19,.68) !important;
+}
+
+.site-shell main:not(.admin-shell):not(.auth-page) .glass .text-stone-400,
+.site-shell main:not(.admin-shell):not(.auth-page) .glass-soft .text-stone-400 {
+  color: rgba(23,21,19,.74) !important;
+}
+
+.site-shell main:not(.admin-shell):not(.auth-page) .glass label > span,
+.site-shell main:not(.admin-shell):not(.auth-page) .glass-soft label > span {
+  color: rgba(23,21,19,.82) !important;
+}
+
+.site-shell main:not(.admin-shell):not(.auth-page) .field {
+  color: #171513 !important;
+  border: 1px solid rgba(35,29,25,.24) !important;
+  background: rgba(252,250,247,.94) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.98),
+    0 3px 10px rgba(41,34,29,.04) !important;
+}
+
+.site-shell main:not(.admin-shell):not(.auth-page) .field::placeholder {
+  color: rgba(23,21,19,.52) !important;
+}
+
+.site-shell main:not(.admin-shell):not(.auth-page) .field:focus {
+  color: #171513 !important;
+  border-color: rgba(150,96,20,.66) !important;
+  background: #fffdf9 !important;
+  box-shadow:
+    0 0 0 4px rgba(177,116,25,.10),
+    inset 0 1px 0 #fff !important;
+}
+
+.site-shell main:not(.admin-shell):not(.auth-page) select.field {
+  color-scheme: light;
+}
+
+.site-shell main:not(.admin-shell):not(.auth-page) select.field option {
+  color: #171513;
+  background: #fffdf9;
+}
+
+.site-shell main:not(.admin-shell):not(.auth-page) .btn-primary {
+  color: #fff;
+  background: #171513;
+  border-color: #171513;
+}
+
+.site-shell main:not(.admin-shell):not(.auth-page) .btn-secondary,
+.site-shell main:not(.admin-shell):not(.auth-page) .btn-ghost {
+  color: #171513;
+  background: rgba(250,248,244,.88);
+  border-color: rgba(23,21,19,.22);
+}
+
+/* Opaque status / popup-style messages on the marble background. */
+.site-shell [class*="bg-red-400/10"],
+.site-shell [class*="bg-red-300/10"] {
+  color: #6f2222 !important;
+  border-color: rgba(112,34,34,.28) !important;
+  background: rgba(250,226,226,.97) !important;
+  box-shadow: 0 12px 30px rgba(72,28,28,.08);
+}
+
+.site-shell [class*="bg-emerald-400/10"],
+.site-shell [class*="bg-emerald-300/10"] {
+  color: #235f3a !important;
+  border-color: rgba(35,95,58,.25) !important;
+  background: rgba(229,246,234,.97) !important;
+  box-shadow: 0 12px 30px rgba(32,76,45,.07);
+}
+
+.site-shell [class*="bg-amber-400/10"],
+.site-shell [class*="bg-orange-300/10"] {
+  color: #704b12 !important;
+  border-color: rgba(112,75,18,.25) !important;
+  background: rgba(251,241,214,.97) !important;
+  box-shadow: 0 12px 30px rgba(86,61,20,.07);
+}
+
+.assistant-error,
+.business-error,
+.business-success,
+.account-alert-error,
+.account-alert-success {
+  backdrop-filter: none !important;
+  box-shadow: 0 12px 28px rgba(54,43,35,.07);
+}
+
+.assistant-error,
+.business-error,
+.account-alert-error {
+  color: #6f2222 !important;
+  border-color: rgba(112,34,34,.25) !important;
+  background: rgba(250,226,226,.97) !important;
+}
+
+.business-success,
+.account-alert-success {
+  color: #235f3a !important;
+  border-color: rgba(35,95,58,.24) !important;
+  background: rgba(229,246,234,.97) !important;
+}
+
+/* Admin page headings sit directly over the marble; cards remain dark. */
+.admin-shell {
+  color: #171513;
+}
+
+.admin-shell > .section-wrap > aside.glass-soft,
+.admin-shell .glass-soft,
+.admin-shell .glass {
+  color: #fffaf3;
+}
+
+.admin-shell > .section-wrap > div > section > .eyebrow,
+.admin-shell > .section-wrap > div > .eyebrow {
+  color: #8d5b15;
+}
+
+.admin-shell > .section-wrap > div > section > h1,
+.admin-shell > .section-wrap > div > h1 {
+  color: #171513;
+}
+
+.admin-shell > .section-wrap > div > section > p.text-stone-400,
+.admin-shell > .section-wrap > div > p.text-stone-400,
+.admin-shell > .section-wrap > div > section > p.text-stone-500,
+.admin-shell > .section-wrap > div > p.text-stone-500 {
+  color: rgba(23,21,19,.68) !important;
+}
+
+/* Existing light pantry forms should be visually solid, not translucent. */
+.business-form-card,
+.assistant-console,
+.assistant-result-card,
+.account-card,
+.account-address-card,
+.account-new-address {
+  background-color: rgba(248,246,242,.92);
+}
+
+.business-field,
+.assistant-input {
+  color: #171513 !important;
+  border-color: rgba(35,29,25,.24) !important;
+  background: rgba(255,253,249,.94) !important;
+}
+
+.business-field::placeholder,
+.assistant-input::placeholder {
+  color: rgba(23,21,19,.50) !important;
+}
