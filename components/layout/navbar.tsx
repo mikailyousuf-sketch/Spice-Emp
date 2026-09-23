@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -27,11 +28,44 @@ function IconMenu({ open }: { open: boolean }) {
 }
 
 export function Navbar() {
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshCartCount() {
+      try {
+        const response = await fetch("/api/cart/count", { cache: "no-store" });
+        const payload = await response.json();
+        if (!cancelled) setCartCount(Number(payload.count) || 0);
+      } catch {
+        if (!cancelled) setCartCount(0);
+      }
+    }
+
+    void refreshCartCount();
+    const interval = window.setInterval(refreshCartCount, 1500);
+    const onFocus = () => void refreshCartCount();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void refreshCartCount();
+    };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [pathname]);
 
   return (
     <>
-      <header className="pantry-navbar-shell">
+      <header className={`pantry-navbar-shell ${menuOpen ? "is-menu-open" : ""}`}>
         <div className="pantry-navbar">
           <Link href="/" className="pantry-brand-link" aria-label="The Glided Pantry home">
             <img src="/branding/glided-wordmark.svg" alt="The Glided Pantry" className="pantry-brand-image" />
@@ -45,7 +79,18 @@ export function Navbar() {
 
           <div className="pantry-nav-actions">
             <Link href="/shop#pantry-search" className="pantry-nav-icon" aria-label="Search pantry"><IconSearch /></Link>
-            <Link href="/cart" className="pantry-nav-icon" aria-label="Cart"><IconCart /></Link>
+            <Link
+              href="/cart"
+              className="pantry-nav-icon pantry-cart-control"
+              aria-label={cartCount > 0 ? `Cart, ${cartCount} item${cartCount === 1 ? "" : "s"}` : "Cart"}
+            >
+              <IconCart />
+              {cartCount > 0 ? (
+                <span className="pantry-cart-count" aria-hidden="true">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              ) : null}
+            </Link>
             <button type="button" className="pantry-nav-icon" aria-label="Open menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(v => !v)}>
               <IconMenu open={menuOpen} />
             </button>
