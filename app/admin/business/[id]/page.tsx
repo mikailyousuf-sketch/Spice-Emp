@@ -69,30 +69,44 @@ export default async function AdminBusinessDetailPage({ params, searchParams }: 
               {latestQuote ? <span className="text-xs capitalize text-stone-500">{latestQuote.status}</span> : null}
             </div>
 
-            <form action={saveWholesaleQuote} className="mt-5">
-              <input type="hidden" name="enquiryId" value={enquiry.id} />
-              <WholesaleQuoteBuilder
-                initialLines={initialLines}
-                existingQuote={latestQuote ? {
-                  id: latestQuote.id,
-                  validUntil: latestQuote.valid_until,
-                  customerNotes: latestQuote.customer_notes,
-                  adminNotes: latestQuote.admin_notes,
-                  shippingCents: latestQuote.shipping_cents,
-                  discountCents: latestQuote.discount_cents,
-                  taxCents: latestQuote.tax_cents,
-                } : null}
-              />
-              <button type="submit" className="btn-primary mt-6 w-full">{latestQuote ? "Save quote changes" : "Create draft quote"}</button>
-            </form>
+            {!latestQuote || ["draft", "sent"].includes(latestQuote.status) ? (
+              <form action={saveWholesaleQuote} className="mt-5">
+                <input type="hidden" name="enquiryId" value={enquiry.id} />
+                <WholesaleQuoteBuilder
+                  initialLines={initialLines}
+                  existingQuote={latestQuote ? {
+                    id: latestQuote.id,
+                    validUntil: latestQuote.valid_until,
+                    customerNotes: latestQuote.customer_notes,
+                    adminNotes: latestQuote.admin_notes,
+                    shippingCents: latestQuote.shipping_cents,
+                    discountCents: latestQuote.discount_cents,
+                    taxCents: latestQuote.tax_cents,
+                  } : null}
+                />
+                <button type="submit" className="btn-primary mt-6 w-full">{latestQuote ? "Save quote changes" : "Create draft quote"}</button>
+              </form>
+            ) : (
+              <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-5 text-sm text-stone-400">
+                This quote is locked because it has been {latestQuote.status}. Create a repeat quote to make new pricing.
+              </div>
+            )}
 
             {latestQuote ? (
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <form action={sendWholesaleQuote}>
-                  <input type="hidden" name="quoteId" value={latestQuote.id} />
-                  <input type="hidden" name="enquiryId" value={enquiry.id} />
-                  <button type="submit" className="btn-secondary w-full">{latestQuote.status === "sent" ? "Resend quote" : "Send quote to customer"}</button>
-                </form>
+                {["draft", "sent"].includes(latestQuote.status) ? (
+                  <form action={sendWholesaleQuote}>
+                    <input type="hidden" name="quoteId" value={latestQuote.id} />
+                    <input type="hidden" name="enquiryId" value={enquiry.id} />
+                    <button type="submit" className="btn-secondary w-full">{latestQuote.status === "sent" ? "Resend quote" : "Send quote to customer"}</button>
+                  </form>
+                ) : (
+                  <form action={cloneWholesaleQuote}>
+                    <input type="hidden" name="quoteId" value={latestQuote.id} />
+                    <input type="hidden" name="enquiryId" value={enquiry.id} />
+                    <button type="submit" className="btn-secondary w-full">Create repeat quote</button>
+                  </form>
+                )}
 
                 {latestQuote.status === "accepted" ? (
                   <form action={convertAcceptedQuoteToOrder}>
@@ -103,11 +117,7 @@ export default async function AdminBusinessDetailPage({ params, searchParams }: 
                 ) : latestQuote.converted_order_id ? (
                   <div className="grid gap-2">
                     <Link href={"/admin/orders/" + latestQuote.converted_order_id} className="btn-primary w-full">Open wholesale order</Link>
-                    <form action={cloneWholesaleQuote}>
-                      <input type="hidden" name="quoteId" value={latestQuote.id} />
-                      <input type="hidden" name="enquiryId" value={enquiry.id} />
-                      <button type="submit" className="btn-secondary w-full">Create repeat quote</button>
-                    </form>
+                    <span className="text-xs text-stone-500">Repeat orders can be started from the button beside this status.</span>
                   </div>
                 ) : null}
               </div>
